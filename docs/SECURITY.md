@@ -84,3 +84,16 @@ npm run db:rls && npm run test:rls
 ```
 
 The first command is safe to run repeatedly.
+
+## Dependency note
+
+`package.json` contains an `overrides` entry pinning `deepmerge-ts` to `^8.0.2`.
+
+Versions below 8 have a published high-severity advisory (GHSA-ggr8-5vv4-36mx).
+It reaches the project only through the Prisma command-line tool, which is a
+development dependency and never ships to your customers — but the override
+clears it anyway so `npm audit` reports zero, and a real problem in future is
+not lost in the noise of a known one.
+
+Remove the override only once Prisma ships a release that depends on
+`deepmerge-ts` 8 or later, and confirm `npm audit` still reports zero.
