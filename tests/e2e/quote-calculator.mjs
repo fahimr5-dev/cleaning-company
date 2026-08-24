@@ -44,7 +44,8 @@ function check(label, actual, expected) {
   const ok = actual.includes(expected);
   console.log(`${ok ? "  PASS " : "**FAIL**"}  ${label}`);
   if (!ok) console.log(`           expected to contain: ${expected}\n           actual: ${actual}`);
-  ok ? pass++ : fail++;
+  if (ok) pass++;
+  else fail++;
 }
 
 await page.goto(`${BASE}/en`, { waitUntil: "networkidle" });

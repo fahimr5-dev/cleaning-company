@@ -90,18 +90,22 @@ export function QuoteCalculator({
 
   const isOffice = propertyType === "OFFICE";
 
-  // Services are not available for every property type — keep the choice valid.
-  const availableCore = coreServices.filter((s) => s.propertyTypes.includes(propertyType));
-  useEffect(() => {
-    if (!availableCore.some((s) => s.code === serviceCode) && availableCore[0]) {
-      setServiceCode(availableCore[0].code);
-    }
-  }, [propertyType, availableCore, serviceCode]);
+  // Not every service is priced for every property type. Rather than storing a
+  // corrected choice, we DERIVE the one actually in force: if the visitor picks
+  // a villa and their chosen service has no villa price, we fall back to the
+  // first service that does. Deriving avoids a render-then-correct flicker.
+  const availableCore = useMemo(
+    () => coreServices.filter((s) => s.propertyTypes.includes(propertyType)),
+    [coreServices, propertyType],
+  );
+  const effectiveServiceCode = availableCore.some((s) => s.code === serviceCode)
+    ? serviceCode
+    : (availableCore[0]?.code ?? "");
 
   const payload = useMemo(
     () => ({
       propertyType,
-      serviceCode,
+      serviceCode: effectiveServiceCode,
       bedrooms: isOffice ? undefined : bedrooms,
       bathrooms,
       sqm: isOffice ? sqm : undefined,
@@ -111,13 +115,13 @@ export function QuoteCalculator({
         .map(([code, units]) => ({ code, units })),
       referralCode: referralCode.trim() || null,
     }),
-    [propertyType, serviceCode, bedrooms, bathrooms, sqm, isOffice, frequency, addOns, referralCode],
+    [propertyType, effectiveServiceCode, bedrooms, bathrooms, sqm, isOffice, frequency, addOns, referralCode],
   );
 
   // Re-price whenever a choice changes. Debounced so dragging a number field
   // does not fire a request per keystroke.
   useEffect(() => {
-    if (!serviceCode) return;
+    if (!effectiveServiceCode) return;
     const timer = setTimeout(() => {
       startPricing(async () => {
         const result = await calculateQuoteAction(payload);
@@ -131,7 +135,7 @@ export function QuoteCalculator({
       });
     }, 250);
     return () => clearTimeout(timer);
-  }, [payload, serviceCode]);
+  }, [payload, effectiveServiceCode]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -211,7 +215,7 @@ export function QuoteCalculator({
         <Choice
           label={t("service")}
           options={availableCore.map((s) => ({ value: s.code, label: name(s) }))}
-          value={serviceCode}
+          value={effectiveServiceCode}
           onChange={setServiceCode}
         />
 
