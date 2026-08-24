@@ -17,12 +17,15 @@
     "db:reset": "prisma migrate reset --force",
     "db:rls": "node scripts/db-sql.mjs prisma/sql/01_rls.sql",
     "test:rls": "node scripts/db-sql.mjs scripts/test-rls.sql --report",
-    "db:setup": "prisma migrate deploy && npm run db:rls && npm run db:seed"
+    "db:setup": "prisma migrate deploy && npm run db:rls && npm run db:seed",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "node tests/e2e/quote-calculator.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@react-pdf/renderer": "^4.8.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "class-variance-authority": "^0.7.1",
@@ -35,6 +38,8 @@
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "resend": "^6.22.0",
+    "server-only": "^0.0.1",
     "shadcn": "^4.19.0",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
@@ -49,6 +54,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
+    "playwright": "^1.62.1",
     "prisma": "^7.9.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",

@@ -205,12 +205,24 @@ async function main() {
   // 3. Services and the rate card
   // -------------------------------------------------------------------------
   const serviceSpec = [
-    { code: "REGULAR", nameEn: "Regular Cleaning", nameAr: "تنظيف دوري", category: "CORE", mins: 120, cleaners: 2 },
-    { code: "DEEP", nameEn: "Deep Cleaning", nameAr: "تنظيف عميق", category: "CORE", mins: 300, cleaners: 3 },
-    { code: "MOVE_IN_OUT", nameEn: "Move In / Move Out", nameAr: "تنظيف عند الانتقال", category: "CORE", mins: 360, cleaners: 3 },
-    { code: "POST_CONSTRUCTION", nameEn: "Post-Construction Cleaning", nameAr: "تنظيف ما بعد البناء", category: "CORE", mins: 480, cleaners: 4 },
-    { code: "AC_DUCT", nameEn: "AC Duct Cleaning", nameAr: "تنظيف مجاري التكييف", category: "ADDON", mins: 180, cleaners: 2 },
-    { code: "SOFA_CARPET", nameEn: "Sofa & Carpet Shampoo", nameAr: "تنظيف الأرائك والسجاد", category: "ADDON", mins: 120, cleaners: 2 },
+    { code: "REGULAR", nameEn: "Regular Cleaning", nameAr: "تنظيف دوري", category: "CORE", mins: 120, cleaners: 2,
+      descEn: "Kitchen, bathrooms, bedrooms and floors, on a schedule that suits you.",
+      descAr: "المطبخ والحمامات وغرف النوم والأرضيات، وفق جدول يناسبك." },
+    { code: "DEEP", nameEn: "Deep Cleaning", nameAr: "تنظيف عميق", category: "CORE", mins: 300, cleaners: 3,
+      descEn: "Inside the oven, inside the fridge, inside the cupboards, descaled tiles and grouting.",
+      descAr: "داخل الفرن والثلاجة والخزائن، وإزالة الترسبات من البلاط والفواصل." },
+    { code: "MOVE_IN_OUT", nameEn: "Move In / Move Out", nameAr: "تنظيف عند الانتقال", category: "CORE", mins: 360, cleaners: 3,
+      descEn: "An empty property returned to handover condition, ready for your landlord's inspection.",
+      descAr: "إعادة العقار الفارغ إلى حالة التسليم، جاهزاً لمعاينة المالك." },
+    { code: "POST_CONSTRUCTION", nameEn: "Post-Construction Cleaning", nameAr: "تنظيف ما بعد البناء", category: "CORE", mins: 480, cleaners: 4,
+      descEn: "Fine dust, paint and adhesive residue removed after a fit-out or renovation.",
+      descAr: "إزالة الغبار الدقيق وبقايا الطلاء واللاصق بعد التشطيب أو التجديد." },
+    { code: "AC_DUCT", nameEn: "AC Duct Cleaning", nameAr: "تنظيف مجاري التكييف", category: "ADDON", mins: 180, cleaners: 2,
+      descEn: "Priced per vent. Recommended once a year in Dubai, more often if you have pets.",
+      descAr: "السعر لكل فتحة. يُنصح به مرة سنوياً في دبي، وأكثر إن كان لديك حيوانات أليفة." },
+    { code: "SOFA_CARPET", nameEn: "Sofa & Carpet Shampoo", nameAr: "تنظيف الأرائك والسجاد", category: "ADDON", mins: 120, cleaners: 2,
+      descEn: "Hot-water extraction, priced per seat or per rug. Dries in three to four hours.",
+      descAr: "تنظيف بالاستخلاص الساخن، السعر لكل مقعد أو سجادة. يجف خلال ٣ إلى ٤ ساعات." },
   ] as const;
 
   const services: Record<string, { id: string; code: string; defaultCleaners: number }> = {};
@@ -222,6 +234,8 @@ async function main() {
         nameEn: s.nameEn,
         nameAr: s.nameAr,
         category: s.category,
+        descriptionEn: s.descEn,
+        descriptionAr: s.descAr,
         defaultDurationMinutes: s.mins,
         defaultCleaners: s.cleaners,
         sortOrder: i,

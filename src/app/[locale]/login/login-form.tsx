@@ -46,7 +46,8 @@ export function LoginForm({ locale }: { locale: string }) {
     // The server decides where this role belongs; `refresh` makes it re-read
     // the new session cookie before the redirect happens.
     router.refresh();
-    router.replace(`/${locale}`);
+    // /home works out which of the four home screens this person belongs on.
+    router.replace(`/${locale}/home`);
   }
 
   return (

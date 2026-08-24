@@ -104,5 +104,124 @@
     "COMPLETED": "Completed",
     "CANCELLED": "Cancelled",
     "NO_ACCESS": "No access"
+  },
+  "marketing": {
+    "meta": {
+      "title": "Professional cleaning in Dubai",
+      "description": "Regular, deep and move-in cleaning for homes and offices across Dubai. Get an instant price in under a minute."
+    },
+    "nav": {
+      "getQuote": "Get a price",
+      "signIn": "Sign in"
+    },
+    "hero": {
+      "eyebrow": "Homes and offices across Dubai",
+      "title": "A cleaning company that shows up on time",
+      "subtitle": "Vetted, trained and insured teams. An instant price with no phone calls, no site visit and no haggling — the number you see is the number you pay, VAT included.",
+      "cta": "Get my price",
+      "whatsapp": "Chat on WhatsApp"
+    },
+    "trust": {
+      "insured": {
+        "title": "Fully insured",
+        "body": "Cover for accidental damage"
+      },
+      "vetted": {
+        "title": "Vetted teams",
+        "body": "Background-checked and trained"
+      },
+      "onTime": {
+        "title": "On time",
+        "body": "We track punctuality per team"
+      },
+      "rated": {
+        "title": "Rated after every visit",
+        "body": "Below 4 stars, we come back free"
+      }
+    },
+    "services": {
+      "title": "What we clean",
+      "subtitle": "Prices for every service below come from our live rate card.",
+      "addOn": "Add-on"
+    },
+    "footer": {
+      "trn": "TRN"
+    },
+    "calculator": {
+      "title": "Your instant price",
+      "subtitle": "No phone call needed. Change anything and the price updates.",
+      "unavailableTitle": "The price calculator is unavailable",
+      "unavailableBody": "Please call us and we will quote you directly.",
+      "propertyType": "Property",
+      "service": "Service",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "sqm": "Floor area (m²)",
+      "frequency": "How often",
+      "addOns": "Add extras",
+      "units": "units",
+      "referralCode": "Referral code",
+      "referralPlaceholder": "Optional",
+      "referralApplied": "Referral from {name} applied.",
+      "referralUnknown": "We do not recognise that code, so no discount was applied.",
+      "frequencyDiscount": "Loyalty discount ({percent}%)",
+      "referralDiscount": "Referral discount",
+      "vat": "VAT ({percent}%)",
+      "total": "Total",
+      "duration": "About {hours} hours with {cleaners} cleaners",
+      "calculating": "Working out your price…",
+      "bookCta": "Book this clean",
+      "yourName": "Your name",
+      "phone": "Mobile number",
+      "email": "Email",
+      "emailHint": "So we can send you the quote as a PDF.",
+      "area": "Area",
+      "areaPlaceholder": "Choose your area",
+      "preferredDate": "Preferred date",
+      "source": "How did you hear about us?",
+      "notes": "Anything we should know?",
+      "submit": "Send my enquiry",
+      "sending": "Sending…",
+      "privacy": "We use your details only to quote and schedule your clean.",
+      "done": {
+        "title": "Thank you — we have your enquiry",
+        "body": "Your quote {quoteNo} is confirmed and our team will call you shortly.",
+        "emailed": "We have emailed your quote as a PDF.",
+        "emailFailed": "We could not email your quote right now, but we have it saved and will call you.",
+        "whatsapp": "Send us the details on WhatsApp"
+      }
+    }
+  },
+  "frequency": {
+    "ONE_OFF": "One-off",
+    "WEEKLY": "Weekly",
+    "BI_WEEKLY": "Every 2 weeks",
+    "MONTHLY": "Monthly"
+  },
+  "propertyType": {
+    "APARTMENT": "Apartment",
+    "VILLA": "Villa",
+    "OFFICE": "Office",
+    "RETAIL": "Retail",
+    "WAREHOUSE": "Warehouse",
+    "OTHER": "Other"
+  },
+  "leadSource": {
+    "GOOGLE": "Google search",
+    "INSTAGRAM": "Instagram",
+    "FACEBOOK": "Facebook",
+    "TIKTOK": "TikTok",
+    "REFERRAL": "A friend referred me",
+    "WALK_IN": "Walk-in",
+    "REPEAT": "I am a returning customer",
+    "PARTNER": "A partner business",
+    "OTHER": "Somewhere else"
+  },
+  "quotePage": {
+    "title": "Your quote",
+    "valid": "Valid until {date}",
+    "expired": "Expired",
+    "download": "Download PDF",
+    "accept": "Accept on WhatsApp"
   }
 }
