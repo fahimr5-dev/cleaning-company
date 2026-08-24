@@ -1,0 +1,108 @@
+{
+  "app": {
+    "name": "CleanOS",
+    "tagline": "Cleaning operations, end to end"
+  },
+  "common": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "language": "Language",
+    "loading": "Loading…",
+    "search": "Search",
+    "today": "Today",
+    "viewAll": "View all",
+    "noData": "Nothing here yet",
+    "back": "Back"
+  },
+  "roles": {
+    "OWNER": "Owner",
+    "OPS_MANAGER": "Operations Manager",
+    "CLEANER": "Cleaner",
+    "CLIENT": "Client"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "leads": "Leads",
+    "clients": "Clients",
+    "schedule": "Schedule",
+    "jobs": "Jobs",
+    "invoices": "Invoices",
+    "staff": "Staff & HR",
+    "inventory": "Inventory",
+    "reports": "Reports",
+    "settings": "Settings",
+    "sections": {
+      "grow": "Grow",
+      "operate": "Operate",
+      "money": "Money",
+      "manage": "Manage"
+    }
+  },
+  "login": {
+    "title": "Sign in to CleanOS",
+    "subtitle": "Use the account your administrator gave you.",
+    "emailPlaceholder": "you@company.ae",
+    "submit": "Sign in",
+    "signingIn": "Signing in…",
+    "invalid": "That email and password do not match an account.",
+    "noProfile": "Your login exists but has no profile in CleanOS. Ask your administrator to add you.",
+    "demoTitle": "Demo accounts",
+    "demoHint": "Seeded by npm run db:seed. Password:"
+  },
+  "setup": {
+    "title": "CleanOS is not connected to Supabase yet",
+    "intro": "The app is installed, but it has no database or login service to talk to. Add these to your .env file, then restart the server.",
+    "missing": "Missing settings",
+    "where": "Every one of these is explained in .env.example, including where to copy it from in your Supabase dashboard.",
+    "docs": "Full instructions are in SETUP.md."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {name}",
+    "jobsToday": "Jobs today",
+    "jobsTodayHint": "Scheduled for {date}",
+    "activeClients": "Active clients",
+    "activeClientsHint": "{commercial} commercial, {residential} residential",
+    "openLeads": "Open leads",
+    "openLeadsHint": "New, contacted or quoted",
+    "outstanding": "Outstanding",
+    "outstandingHint": "{count} unpaid invoices",
+    "utilisation": "Team utilisation today",
+    "utilisationHint": "Minutes sold against minutes available",
+    "attention": "Needs attention",
+    "openTickets": "Open tickets",
+    "flaggedClockIns": "Clock-ins outside the geofence",
+    "expiringDocuments": "Documents expiring in 60 days",
+    "overdueInvoices": "Overdue invoices",
+    "lowStock": "Items below reorder level",
+    "recentJobs": "Next jobs",
+    "noJobsToday": "No jobs scheduled today.",
+    "phaseNotice": "Phase 1 of 8 is complete: accounts, roles, database and demo data. The screens below arrive in later phases.",
+    "todayLabel": "Today",
+    "minutesUnit": "min"
+  },
+  "todo": {
+    "badge": "NOT BUILT YET",
+    "heading": "{feature} arrives in Phase {phase}",
+    "body": "This screen is deliberately empty. It is a placeholder so you can see the navigation, not a broken page.",
+    "willInclude": "What this screen will do:"
+  },
+  "field": {
+    "title": "Today's jobs",
+    "greeting": "Hello {name}"
+  },
+  "portal": {
+    "title": "My account",
+    "greeting": "Hello {name}"
+  },
+  "jobStatus": {
+    "SCHEDULED": "Scheduled",
+    "EN_ROUTE": "En route",
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "NO_ACCESS": "No access"
+  }
+}

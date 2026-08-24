@@ -1,0 +1,2136 @@
+// ============================================================================
+// CleanOS — Cleaning Company Management Platform (UAE)
+// Prisma schema — PROPOSAL v1 (Phase 1)
+// ----------------------------------------------------------------------------
+// CONVENTIONS USED THROUGHOUT THIS FILE
+//
+//  * Money  : every amount is an INTEGER of FILS (1 AED = 100 fils). Never a
+//             decimal/float. A field ending in "Fils" is always money.
+//  * Rates  : percentages are stored in BASIS POINTS ("Bps"). 500 = 5.00%.
+//             This keeps VAT and discounts exact, same reasoning as fils.
+//  * IDs    : UUIDs. `User.id` is deliberately NOT auto-generated — it is the
+//             exact same UUID Supabase Auth issues, so the database can ask
+//             "is auth.uid() allowed to see this row?" in RLS policies.
+//  * Delete : nothing is ever really deleted. `deletedAt` + `deletedById`.
+//  * Who    : columns like `createdById` / `approvedById` hold a User UUID but
+//             are plain columns (no foreign key) on purpose — otherwise every
+//             table would need a back-link on User and the schema would become
+//             unreadable. The AuditLog table is the one place we join to User.
+//  * Naming : Prisma models are PascalCase (what you write in code); the actual
+//             Postgres tables are snake_case plural via @@map (what you see in
+//             the Supabase dashboard and in RLS policies).
+//  * i18n   : any text a customer can see exists twice — `xxxEn` and `xxxAr`.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// ENUMS — fixed lists of allowed values, so bad data cannot be typed in
+// ============================================================================
+
+enum Role {
+  OWNER // sees and changes everything, including money settings
+  OPS_MANAGER // scheduling, staff, clients, complaints — no financial settings
+  CLEANER // mobile only: today's jobs, checklist, photos, clock in/out
+  CLIENT // self-service portal
+}
+
+enum Locale {
+  EN
+  AR
+}
+
+enum ClientType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum ClientStatus {
+  ACTIVE
+  PAUSED
+  CHURNED
+}
+
+enum BillingMode {
+  PER_JOB // invoice raised each time a job is completed
+  MONTHLY_CONSOLIDATED // one invoice at month end (typical for offices)
+}
+
+enum PropertyType {
+  APARTMENT
+  VILLA
+  OFFICE
+  RETAIL
+  WAREHOUSE
+  OTHER
+}
+
+enum ServiceCategory {
+  CORE // the main clean being bought
+  ADDON // sold on top: AC duct, sofa shampoo, etc.
+}
+
+enum PricingModel {
+  FLAT // one fixed price
+  PER_ROOM // base + per bedroom + per bathroom
+  PER_SQM // base + per square metre
+  PER_HOUR // base + per hour
+  PER_UNIT // per AC vent, per sofa seat, per carpet
+}
+
+enum Frequency {
+  ONE_OFF
+  WEEKLY
+  BI_WEEKLY
+  MONTHLY
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  WON
+  LOST
+}
+
+enum LeadSource {
+  GOOGLE
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  REFERRAL
+  WALK_IN
+  REPEAT
+  PARTNER
+  OTHER
+}
+
+enum LostReason {
+  PRICE_TOO_HIGH
+  NO_AVAILABILITY
+  WENT_WITH_COMPETITOR
+  NO_RESPONSE
+  OUT_OF_SERVICE_AREA
+  NOT_SERIOUS
+  OTHER
+}
+
+enum LeadActivityType {
+  NOTE
+  CALL
+  WHATSAPP
+  EMAIL
+  SITE_VISIT
+  STATUS_CHANGE
+  QUOTE_SENT
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum JobStatus {
+  SCHEDULED
+  EN_ROUTE
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_ACCESS
+}
+
+enum SeriesStatus {
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum DocumentType {
+  PASSPORT
+  VISA
+  EMIRATES_ID
+  MEDICAL_FITNESS
+  LABOUR_CARD
+  CONTRACT
+  TRAINING_CERT
+  OTHER
+}
+
+enum StaffPosition {
+  CLEANER
+  TEAM_LEAD
+  SUPERVISOR
+  DRIVER
+  OFFICE
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  UNPAID
+  EMERGENCY
+  MATERNITY
+  HAJJ
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PhotoKind {
+  BEFORE
+  AFTER
+  ISSUE
+}
+
+enum TicketType {
+  DAMAGE
+  NO_ACCESS
+  ON_SITE_COMPLAINT
+  CLIENT_COMPLAINT
+  LOW_RATING
+  EQUIPMENT_FAULT
+  OTHER
+}
+
+enum TicketSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  AWAITING_CLIENT
+  RESOLVED
+  CLOSED
+}
+
+enum TimeReviewStatus {
+  NOT_REQUIRED // GPS matched, nothing to look at
+  PENDING // outside the geofence — manager must eyeball it
+  APPROVED
+  REJECTED
+}
+
+enum TimeEntrySource {
+  MOBILE
+  MANUAL
+}
+
+enum InvoiceType {
+  STANDARD // one job
+  CONSOLIDATED // a month of jobs for one commercial client
+  PACKAGE // sale of a prepaid session bundle
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentMethod {
+  CARD_STRIPE
+  CASH
+  BANK_TRANSFER
+  CHEQUE
+  PACKAGE // consumed a prepaid session instead of paying money
+  CREDIT_NOTE // settled using existing credit
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum CreditNoteStatus {
+  DRAFT
+  ISSUED
+  APPLIED
+  VOID
+}
+
+enum ClientPackageStatus {
+  ACTIVE
+  EXPIRED
+  USED_UP
+  CANCELLED
+}
+
+enum DunningStatus {
+  SCHEDULED
+  SENT
+  SKIPPED // invoice got paid before this reminder was due
+  FAILED
+}
+
+enum Channel {
+  EMAIL
+  WHATSAPP
+  BOTH
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum CampaignType {
+  WINBACK
+  NPS
+  PROMO
+  REFERRAL_PUSH
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENDING
+  SENT
+  CANCELLED
+}
+
+enum RecipientStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+  OPTED_OUT
+}
+
+enum RiskReason {
+  SKIPPED_CYCLES
+  RATING_DECLINE
+  PAYMENT_FRICTION
+  INACTIVITY
+  COMPLAINT_HISTORY
+}
+
+enum RiskStatus {
+  OPEN
+  DISMISSED
+  ACTIONED
+}
+
+enum UnitOfMeasure {
+  PIECE
+  LITRE
+  KILOGRAM
+  BOX
+  ROLL
+}
+
+enum StockMovementType {
+  PURCHASE
+  ISSUE_TO_TEAM
+  RETURN
+  ADJUSTMENT
+  WASTAGE
+}
+
+enum EquipmentStatus {
+  IN_SERVICE
+  IN_REPAIR
+  RETIRED
+  LOST
+}
+
+enum MaintenanceType {
+  SCHEDULED
+  REPAIR
+  INSPECTION
+}
+
+enum DiscountType {
+  FIXED // a flat number of fils off
+  PERCENTAGE // basis points off
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  SOFT_DELETE
+  RESTORE
+  LOGIN
+  EXPORT
+  APPROVE
+  REJECT
+  SEND
+  PAYMENT_RECORDED
+  REFUND
+}
+
+enum ReferralStatus {
+  PENDING // code used, first job not done yet
+  QUALIFIED // referee completed + paid their first job
+  REWARDED // both discounts have been issued
+  CANCELLED
+}
+
+// ============================================================================
+// SECTION 1 — FOUNDATION: company settings, users, audit, geography
+// ============================================================================
+
+/// Your company's single settings record — VAT %, TRN, weekend days, all the
+/// business rules that must never be hardcoded in the app.
+model Organization {
+  id            String  @id @default(uuid()) @db.Uuid
+  name          String
+  nameAr        String?
+  legalName     String?
+  trn           String? // Tax Registration Number printed on every VAT invoice
+  currency      String  @default("AED")
+  defaultLocale Locale  @default(EN)
+  timezone      String  @default("Asia/Dubai")
+
+  // --- Tax ---
+  vatRateBps Int @default(500) // 500 bps = 5.00%
+
+  // --- Calendar ---
+  /// Weekend days as day-of-week numbers, 0 = Sunday … 6 = Saturday.
+  /// Default [5,6] = Friday + Saturday. Change to [6,0] for Sat + Sun.
+  weekendDays Int[] @default([5, 6])
+
+  // --- Contact / branding shown on quotes and invoices ---
+  addressLine1   String?
+  addressLine2   String?
+  city           String? @default("Dubai")
+  emirate        String? @default("Dubai")
+  poBox          String?
+  phone          String?
+  whatsappNumber String?
+  email          String?
+  website        String?
+  logoUrl        String?
+
+  // --- Documents ---
+  invoicePrefix     String  @default("INV")
+  quotePrefix       String  @default("QT")
+  creditNotePrefix  String  @default("CN")
+  invoiceFooterEn   String?
+  invoiceFooterAr   String?
+  quoteValidityDays Int     @default(14)
+  bankName          String?
+  bankIban          String?
+  bankAccountName   String?
+
+  // --- Scheduling rules ---
+  rescheduleCutoffHours       Int @default(24)
+  lateCancellationFeeBps      Int @default(0) // % of job price, in basis points
+  lateCancellationFeeFlatFils Int @default(0) // or a flat fee; both can apply
+  defaultTravelBufferMinutes  Int @default(30)
+  geofenceRadiusMeters        Int @default(200)
+
+  // --- Quality & retention rules ---
+  ratingRequestDelayMinutes Int     @default(120)
+  reCleanRatingThreshold    Int     @default(4) // rating BELOW this opens a ticket
+  googleReviewUrl           String?
+  npsIntervalDays           Int     @default(90)
+  winbackInactiveDays       Int     @default(60)
+  churnSkippedCycles        Int     @default(2)
+
+  // --- Referral rules ---
+  referralDiscountType DiscountType @default(FIXED)
+  referrerRewardValue  Int          @default(0) // fils, or bps if PERCENTAGE
+  refereeRewardValue   Int          @default(0)
+
+  // --- Credit control ---
+  /// Reminder schedule in days relative to the due date. [0,3,7] = on the due
+  /// date, then 3 days late, then 7 days late.
+  dunningOffsetsDays      Int[]   @default([0, 3, 7])
+  autoPauseOverdueClients Boolean @default(false)
+  autoPauseAfterDays      Int     @default(14)
+
+  // --- HR compliance ---
+  /// Send a visa/EID/medical expiry warning this many days before expiry.
+  complianceAlertDays  Int[]   @default([60, 30, 7])
+  complianceAlertEmail String?
+  lowStockAlertEmail   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("organizations")
+}
+
+/// Every person who can log in. The id is the SAME uuid as Supabase Auth uses,
+/// which is what makes database-level Row Level Security possible.
+model User {
+  id          String    @id @db.Uuid
+  email       String    @unique
+  phone       String?
+  fullName    String
+  role        Role
+  locale      Locale    @default(EN)
+  avatarUrl   String?
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+
+  staff  Staff?
+  client Client?
+
+  auditLogs AuditLog[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  deletedById String?   @db.Uuid
+
+  @@index([role])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+/// An immutable "who did what, when, and what did it look like before/after"
+/// trail — written on every edit, soft-delete, approval, refund and export.
+model AuditLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  actorId    String?     @db.Uuid
+  actor      User?       @relation(fields: [actorId], references: [id])
+  actorEmail String? // kept as text so the trail survives if the user is removed
+  action     AuditAction
+  entity     String // e.g. "Job", "Invoice"
+  entityId   String
+  summary    String? // human sentence: "Cancelled job JOB-2026-0142"
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+/// A service area (Marina, Mirdif, Al Barsha…) used for travel-time warnings
+/// and for "revenue by area" reporting.
+model Zone {
+  id        String  @id @default(uuid()) @db.Uuid
+  nameEn    String
+  nameAr    String
+  emirate   String  @default("Dubai")
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  properties ClientProperty[]
+  leads      Lead[]
+  teams      Team[]
+  travelFrom ZoneTravelTime[] @relation("TravelFrom")
+  travelTo   ZoneTravelTime[] @relation("TravelTo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([nameEn, emirate])
+  @@map("zones")
+}
+
+/// How many minutes it realistically takes to drive from one zone to another —
+/// this is what powers the "that team can't physically make it" warning.
+model ZoneTravelTime {
+  id         String @id @default(uuid()) @db.Uuid
+  fromZoneId String @db.Uuid
+  toZoneId   String @db.Uuid
+  fromZone   Zone   @relation("TravelFrom", fields: [fromZoneId], references: [id], onDelete: Cascade)
+  toZone     Zone   @relation("TravelTo", fields: [toZoneId], references: [id], onDelete: Cascade)
+  minutes    Int
+
+  @@unique([fromZoneId, toZoneId])
+  @@map("zone_travel_times")
+}
+
+// ============================================================================
+// SECTION 2 — PRICE LIST (the rate card the quote calculator reads)
+// ============================================================================
+
+/// One sellable service: Regular Clean, Deep Clean, Move-in/out,
+/// Post-construction, AC Duct Cleaning, Sofa & Carpet Shampoo.
+model ServiceType {
+  id                     String          @id @default(uuid()) @db.Uuid
+  code                   String          @unique // REGULAR, DEEP, MOVE_IN_OUT…
+  nameEn                 String
+  nameAr                 String
+  descriptionEn          String?
+  descriptionAr          String?
+  category               ServiceCategory @default(CORE)
+  defaultDurationMinutes Int             @default(120)
+  defaultCleaners        Int             @default(2)
+  isActive               Boolean         @default(true)
+  sortOrder              Int             @default(0)
+
+  rateCardItems      RateCardItem[]
+  checklistTemplates ChecklistTemplate[]
+  jobs               Job[]
+  series             RecurringSeries[]
+  quoteLines         QuoteLine[]
+  invoiceLines       InvoiceLine[]
+  jobLines           JobLine[]
+  packages           Package[]
+  leads              Lead[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("service_types")
+}
+
+/// A named, dated price list. Only one is active at a time, and old ones are
+/// kept so a quote from March can still be explained in June.
+model RateCard {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  isActive      Boolean   @default(false)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  notes         String?
+
+  items              RateCardItem[]
+  frequencyModifiers FrequencyModifier[]
+  quotes             Quote[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?   @db.Uuid
+  deletedAt   DateTime?
+
+  @@map("rate_cards")
+}
+
+/// One price rule = "this service, for this property type, costs X base plus Y
+/// per bedroom / per sqm / per unit, with a minimum charge".
+model RateCardItem {
+  id            String       @id @default(uuid()) @db.Uuid
+  rateCardId    String       @db.Uuid
+  rateCard      RateCard     @relation(fields: [rateCardId], references: [id], onDelete: Cascade)
+  serviceTypeId String       @db.Uuid
+  serviceType   ServiceType  @relation(fields: [serviceTypeId], references: [id])
+  propertyType  PropertyType
+  pricingModel  PricingModel @default(PER_ROOM)
+
+  basePriceFils     Int @default(0)
+  perBedroomFils    Int @default(0)
+  perBathroomFils   Int @default(0)
+  perSqmFils        Int @default(0)
+  perHourFils       Int @default(0)
+  perUnitFils       Int @default(0) // per AC vent, per sofa seat, per carpet
+  minimumChargeFils Int @default(0)
+
+  // How long the job should take — drives the calendar block and utilisation %
+  minutesBase        Int @default(0)
+  minutesPerBedroom  Int @default(0)
+  minutesPerBathroom Int @default(0)
+  minutesPer100Sqm   Int @default(0)
+  minutesPerUnit     Int @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([rateCardId, serviceTypeId, propertyType])
+  @@map("rate_card_items")
+}
+
+/// The loyalty discount for committing to a schedule — e.g. weekly clients get
+/// 15% off, monthly get 5% off.
+model FrequencyModifier {
+  id          String    @id @default(uuid()) @db.Uuid
+  rateCardId  String    @db.Uuid
+  rateCard    RateCard  @relation(fields: [rateCardId], references: [id], onDelete: Cascade)
+  frequency   Frequency
+  discountBps Int       @default(0)
+
+  @@unique([rateCardId, frequency])
+  @@map("frequency_modifiers")
+}
+
+// ============================================================================
+// SECTION 3 — CRM: leads, quotes, clients, referrals, marketing spend
+// ============================================================================
+
+/// An enquiry that has not become a paying client yet — this is the card that
+/// moves across your New → Contacted → Quoted → Won → Lost Kanban board.
+model Lead {
+  id          String @id @default(uuid()) @db.Uuid
+  referenceNo String @unique // LD-2026-0001
+
+  fullName String
+  phone    String
+  email    String?
+  locale   Locale  @default(EN)
+
+  source           LeadSource
+  sourceDetail     String? // "Instagram story", "referred by Ahmed"
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  referralCodeUsed String?
+
+  status        LeadStatus  @default(NEW)
+  lostReason    LostReason?
+  lostNote      String?
+  /// Vertical position of the card inside its Kanban column.
+  boardPosition Int         @default(0)
+
+  // What they asked for (feeds the instant quote)
+  propertyType  PropertyType?
+  zoneId        String?       @db.Uuid
+  zone          Zone?         @relation(fields: [zoneId], references: [id])
+  addressLine   String?
+  bedrooms      Int?
+  bathrooms     Int?
+  sqm           Int?
+  serviceTypeId String?       @db.Uuid
+  serviceType   ServiceType?  @relation(fields: [serviceTypeId], references: [id])
+  frequency     Frequency?
+  preferredDate DateTime?
+  notes         String?
+
+  /// The price the website calculator showed them, frozen at capture time.
+  estimateFils Int?
+
+  ownerId           String?   @db.Uuid // staff member chasing this lead
+  firstContactedAt  DateTime?
+  convertedClientId String?   @unique @db.Uuid
+  convertedClient   Client?   @relation("LeadConversion", fields: [convertedClientId], references: [id])
+  convertedAt       DateTime?
+
+  quotes     Quote[]
+  activities LeadActivity[]
+  referral   Referral?      @relation("ReferralReferee")
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  deletedById String?   @db.Uuid
+
+  @@index([status, boardPosition])
+  @@index([source])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+/// A dated note on a lead — the call log / WhatsApp history so nobody chases
+/// the same person twice.
+model LeadActivity {
+  id     String           @id @default(uuid()) @db.Uuid
+  leadId String           @db.Uuid
+  lead   Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type   LeadActivityType
+  body   String
+  userId String?          @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+  @@map("lead_activities")
+}
+
+/// A formal priced offer with a PDF and an expiry date, sent to a lead or an
+/// existing client.
+model Quote {
+  id      String @id @default(uuid()) @db.Uuid
+  quoteNo String @unique // QT-2026-0001
+
+  leadId     String?   @db.Uuid
+  lead       Lead?     @relation(fields: [leadId], references: [id])
+  clientId   String?   @db.Uuid
+  client     Client?   @relation(fields: [clientId], references: [id])
+  rateCardId String?   @db.Uuid
+  rateCard   RateCard? @relation(fields: [rateCardId], references: [id])
+
+  status     QuoteStatus @default(DRAFT)
+  validUntil DateTime
+  frequency  Frequency   @default(ONE_OFF)
+
+  subtotalFils Int @default(0)
+  discountFils Int @default(0)
+  vatRateBps   Int @default(500)
+  vatFils      Int @default(0)
+  totalFils    Int @default(0)
+
+  notesEn    String?
+  notesAr    String?
+  pdfUrl     String?
+  sentAt     DateTime?
+  acceptedAt DateTime?
+  declinedAt DateTime?
+
+  lines QuoteLine[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?   @db.Uuid
+  deletedAt   DateTime?
+
+  @@index([status])
+  @@map("quotes")
+}
+
+/// One priced line on a quote ("Deep clean, 3 bed villa — AED 950").
+model QuoteLine {
+  id            String       @id @default(uuid()) @db.Uuid
+  quoteId       String       @db.Uuid
+  quote         Quote        @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  serviceTypeId String?      @db.Uuid
+  serviceType   ServiceType? @relation(fields: [serviceTypeId], references: [id])
+  descriptionEn String
+  descriptionAr String?
+  quantity      Decimal      @default(1) @db.Decimal(10, 2)
+  unitPriceFils Int
+  discountFils  Int          @default(0)
+  lineTotalFils Int
+  sortOrder     Int          @default(0)
+
+  @@map("quote_lines")
+}
+
+/// A paying customer — household or company — and all the commercial settings
+/// that apply to them (billing mode, payment terms, TRN, referral code).
+model Client {
+  id       String @id @default(uuid()) @db.Uuid
+  clientNo String @unique // CL-2026-0001
+
+  userId String? @unique @db.Uuid // portal login; null until they activate it
+  user   User?   @relation(fields: [userId], references: [id])
+
+  type          ClientType @default(RESIDENTIAL)
+  companyName   String?
+  contactName   String
+  email         String?
+  phone         String
+  whatsappPhone String?
+  locale        Locale     @default(EN)
+  trn           String? // the client's own TRN, for B2B VAT invoices
+
+  billingMode      BillingMode @default(PER_JOB)
+  paymentTermsDays Int         @default(0)
+
+  referralCode       String   @unique // e.g. "AHMED-4821"
+  referredByClientId String?  @db.Uuid
+  referredBy         Client?  @relation("ClientReferral", fields: [referredByClientId], references: [id])
+  referredClients    Client[] @relation("ClientReferral")
+
+  status             ClientStatus @default(ACTIVE)
+  isBookingPaused    Boolean      @default(false)
+  bookingPauseReason String?
+
+  /// Money we owe the client (overpayments, credit notes) — spendable on future
+  /// invoices. Always positive fils.
+  creditBalanceFils Int @default(0)
+
+  leadSource LeadSource?
+  acquiredAt DateTime?
+  lastJobAt  DateTime?
+  notesEn    String?
+  vipNotes   String?
+
+  convertedFromLead Lead? @relation("LeadConversion")
+
+  properties         ClientProperty[]
+  jobs               Job[]
+  series             RecurringSeries[]
+  quotes             Quote[]
+  invoices           Invoice[]
+  payments           Payment[]
+  creditNotes        CreditNote[]
+  packages           ClientPackage[]
+  ratings            Rating[]
+  npsResponses       NpsResponse[]
+  tickets            Ticket[]
+  riskFlags          ClientRiskFlag[]
+  messages           MessageLog[]
+  campaignRecipients CampaignRecipient[]
+  referralsMade      Referral[]          @relation("ReferralReferrer")
+  referralReceived   Referral?           @relation("ReferralRefereeClient")
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  deletedById String?   @db.Uuid
+
+  @@index([status])
+  @@index([deletedAt])
+  @@map("clients")
+}
+
+/// A physical site we clean. One client can have several (home + holiday flat,
+/// or a chain with five branches). Holds the access notes the cleaner needs.
+model ClientProperty {
+  id       String @id @default(uuid()) @db.Uuid
+  clientId String @db.Uuid
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  label        String // "Villa — Jumeirah 2"
+  propertyType PropertyType
+  zoneId       String?      @db.Uuid
+  zone         Zone?        @relation(fields: [zoneId], references: [id])
+
+  buildingName String?
+  unitNumber   String?
+  addressLine1 String
+  addressLine2 String?
+  city         String  @default("Dubai")
+  emirate      String  @default("Dubai")
+  makaniNumber String? // UAE's 10-digit building locator
+  latitude     Float?
+  longitude    Float?
+
+  bedrooms  Int?
+  bathrooms Int?
+  sqm       Int?
+
+  // --- What the cleaner must know before arriving ---
+  accessNotes       String?
+  gateCode          String?
+  parkingNotes      String?
+  hasPets           Boolean @default(false)
+  petNotes          String?
+  chemicalAllergies String?
+  keyHeldByCompany  Boolean @default(false)
+  keyTag            String?
+
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  jobs   Job[]
+  series RecurringSeries[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([clientId])
+  @@index([zoneId])
+  @@map("client_properties")
+}
+
+/// One "X introduced Y" record, tracking whether the reward has been earned and
+/// how much revenue the introduction produced.
+model Referral {
+  id   String @id @default(uuid()) @db.Uuid
+  code String
+
+  referrerClientId String @db.Uuid
+  referrerClient   Client @relation("ReferralReferrer", fields: [referrerClientId], references: [id])
+
+  refereeClientId String? @unique @db.Uuid
+  refereeClient   Client? @relation("ReferralRefereeClient", fields: [refereeClientId], references: [id])
+  refereeLeadId   String? @unique @db.Uuid
+  refereeLead     Lead?   @relation("ReferralReferee", fields: [refereeLeadId], references: [id])
+
+  status                ReferralStatus @default(PENDING)
+  referrerRewardFils    Int            @default(0)
+  refereeDiscountFils   Int            @default(0)
+  qualifyingJobId       String?        @unique @db.Uuid
+  qualifyingJob         Job?           @relation(fields: [qualifyingJobId], references: [id])
+  referrerRewardedAt    DateTime?
+  refereeDiscountedAt   DateTime?
+  /// Lifetime revenue booked from the referred client — powers "referral revenue %".
+  attributedRevenueFils Int            @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([referrerClientId])
+  @@map("referrals")
+}
+
+/// What you spent on each marketing channel each month — the numerator of the
+/// Customer Acquisition Cost report.
+model MarketingSpend {
+  id         String     @id @default(uuid()) @db.Uuid
+  source     LeadSource
+  year       Int
+  month      Int // 1–12
+  amountFils Int
+  note       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String?  @db.Uuid
+
+  @@unique([source, year, month])
+  @@map("marketing_spend")
+}
+
+// ============================================================================
+// SECTION 4 — PEOPLE: staff, teams, HR compliance, leave
+// ============================================================================
+
+/// An employee record — separate from User because not every cleaner needs a
+/// login, and this is where the UAE compliance data lives.
+model Staff {
+  id         String  @id @default(uuid()) @db.Uuid
+  employeeNo String  @unique // EMP-0001
+  userId     String? @unique @db.Uuid
+  user       User?   @relation(fields: [userId], references: [id])
+
+  firstName   String
+  lastName    String
+  phone       String
+  email       String?
+  nationality String?
+  dateOfBirth DateTime?
+  photoUrl    String?
+  locale      Locale    @default(EN)
+
+  position         StaffPosition    @default(CLEANER)
+  employmentStatus EmploymentStatus @default(ACTIVE)
+  hiredAt          DateTime
+  terminatedAt     DateTime?
+
+  // Payroll figures we EXPORT for WPS — we never process salaries in-app.
+  basicSalaryFils Int     @default(0)
+  allowancesFils  Int     @default(0)
+  iban            String?
+  wpsLabourCardNo String?
+  annualLeaveDays Int     @default(30)
+
+  emergencyContactName  String?
+  emergencyContactPhone String?
+
+  documents       StaffDocument[]
+  teamMemberships TeamMember[]
+  jobAssignments  JobAssignment[]
+  timeEntries     TimeEntry[]
+  leaveRequests   LeaveRequest[]
+  photosTaken     JobPhoto[]
+  checklistChecks JobChecklistItem[]
+  ticketsRaised   Ticket[]           @relation("TicketRaisedByStaff")
+  equipmentHeld   Equipment[]
+  stockMovements  StockMovement[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  deletedById String?   @db.Uuid
+
+  @@index([employmentStatus])
+  @@map("staff")
+}
+
+/// A dated legal document for an employee — visa, Emirates ID, medical fitness.
+/// The expiry date here is what the 60/30/7-day alert system watches.
+model StaffDocument {
+  id        String       @id @default(uuid()) @db.Uuid
+  staffId   String       @db.Uuid
+  staff     Staff        @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  type      DocumentType
+  number    String?
+  issuedAt  DateTime?
+  expiresAt DateTime?
+  fileUrl   String? // Supabase Storage path to the scan
+  notes     String?
+
+  alerts ComplianceAlert[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([expiresAt])
+  @@index([staffId, type])
+  @@map("staff_documents")
+}
+
+/// A record that "we already warned the admin 30 days before this visa expires"
+/// — its only job is to stop the same alert being emailed twice.
+model ComplianceAlert {
+  id              String        @id @default(uuid()) @db.Uuid
+  staffDocumentId String        @db.Uuid
+  staffDocument   StaffDocument @relation(fields: [staffDocumentId], references: [id], onDelete: Cascade)
+  daysBefore      Int // 60, 30 or 7
+  sentAt          DateTime      @default(now())
+  recipient       String
+
+  @@unique([staffDocumentId, daysBefore])
+  @@map("compliance_alerts")
+}
+
+/// A crew that gets scheduled as one unit on the calendar, with its own working
+/// hours and daily capacity in minutes.
+model Team {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String
+  nameAr   String?
+  colorHex String  @default("#2563EB") // the colour of its row on the calendar
+
+  homeZoneId String? @db.Uuid
+  homeZone   Zone?   @relation(fields: [homeZoneId], references: [id])
+
+  /// Sellable minutes in a normal working day — the denominator of utilisation %.
+  capacityMinutesPerDay Int    @default(480)
+  /// Working days as day-of-week numbers, 0 = Sunday … 6 = Saturday.
+  workingDays           Int[]  @default([0, 1, 2, 3, 4])
+  shiftStart            String @default("08:00")
+  shiftEnd              String @default("18:00")
+
+  isActive Boolean @default(true)
+
+  members        TeamMember[]
+  jobs           Job[]
+  series         RecurringSeries[]
+  equipment      Equipment[]
+  stockMovements StockMovement[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  deletedById String?   @db.Uuid
+
+  @@map("teams")
+}
+
+/// Which employees are in which team, and which one of them is the team lead.
+model TeamMember {
+  id       String    @id @default(uuid()) @db.Uuid
+  teamId   String    @db.Uuid
+  team     Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  staffId  String    @db.Uuid
+  staff    Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  isLead   Boolean   @default(false)
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  @@unique([teamId, staffId])
+  @@map("team_members")
+}
+
+/// A holiday or sick-leave request and its approval — an approved one removes
+/// that person's capacity from the calendar automatically.
+model LeaveRequest {
+  id        String    @id @default(uuid()) @db.Uuid
+  staffId   String    @db.Uuid
+  staff     Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  type      LeaveType
+  startDate DateTime  @db.Date
+  endDate   DateTime  @db.Date
+  days      Int
+  reason    String?
+
+  status       ApprovalStatus @default(PENDING)
+  decidedById  String?        @db.Uuid
+  decidedAt    DateTime?
+  decisionNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, startDate])
+  @@index([status])
+  @@map("leave_requests")
+}
+
+// ============================================================================
+// SECTION 5 — SCHEDULING: recurring series, jobs, assignments
+// ============================================================================
+
+/// The "rule" behind a repeating booking — "every Tuesday 9am, 3 hours, Team A".
+/// Individual visits are generated from it and can be changed without breaking it.
+model RecurringSeries {
+  id            String         @id @default(uuid()) @db.Uuid
+  clientId      String         @db.Uuid
+  client        Client         @relation(fields: [clientId], references: [id])
+  propertyId    String         @db.Uuid
+  property      ClientProperty @relation(fields: [propertyId], references: [id])
+  serviceTypeId String         @db.Uuid
+  serviceType   ServiceType    @relation(fields: [serviceTypeId], references: [id])
+  teamId        String?        @db.Uuid
+  team          Team?          @relation(fields: [teamId], references: [id])
+
+  frequency       Frequency
+  /// Repeat every N periods — 1 = every week, 2 = every other week.
+  interval        Int       @default(1)
+  /// Which days it lands on, 0 = Sunday … 6 = Saturday.
+  daysOfWeek      Int[]     @default([])
+  startDate       DateTime  @db.Date
+  endDate         DateTime? @db.Date
+  occurrenceLimit Int?
+  timeOfDay       String    @default("09:00")
+
+  durationMinutes  Int
+  cleanersRequired Int @default(2)
+  priceFils        Int
+
+  status         SeriesStatus @default(ACTIVE)
+  /// How far ahead visits have already been created — the generator picks up here.
+  generatedUntil DateTime?
+  notes          String?
+
+  jobs Job[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?   @db.Uuid
+  deletedAt   DateTime?
+
+  @@index([status])
+  @@map("recurring_series")
+}
+
+/// One cleaning visit — the single most important row in the system. Everything
+/// else (checklist, photos, timesheet, invoice, rating) hangs off it.
+model Job {
+  id    String @id @default(uuid()) @db.Uuid
+  jobNo String @unique // JOB-2026-000142
+
+  clientId      String         @db.Uuid
+  client        Client         @relation(fields: [clientId], references: [id])
+  propertyId    String         @db.Uuid
+  property      ClientProperty @relation(fields: [propertyId], references: [id])
+  serviceTypeId String         @db.Uuid
+  serviceType   ServiceType    @relation(fields: [serviceTypeId], references: [id])
+  teamId        String?        @db.Uuid
+  team          Team?          @relation(fields: [teamId], references: [id])
+
+  seriesId        String?          @db.Uuid
+  series          RecurringSeries? @relation(fields: [seriesId], references: [id])
+  occurrenceIndex Int?
+
+  status JobStatus @default(SCHEDULED)
+
+  scheduledStart   DateTime
+  scheduledEnd     DateTime
+  actualStart      DateTime?
+  actualEnd        DateTime?
+  durationMinutes  Int
+  cleanersRequired Int       @default(2)
+
+  // Money — computed from JobLine rows, stored so history never shifts
+  subtotalFils Int @default(0)
+  discountFils Int @default(0)
+  vatRateBps   Int @default(500)
+  vatFils      Int @default(0)
+  totalFils    Int @default(0)
+
+  clientNotes   String? // instructions from the client for this visit
+  internalNotes String?
+
+  cancelledAt             DateTime?
+  cancelledById           String?   @db.Uuid
+  cancellationReason      String?
+  isLateCancellation      Boolean   @default(false)
+  lateCancellationFeeFils Int       @default(0)
+  noAccessNote            String?
+
+  rescheduledFromId String? @unique @db.Uuid
+  rescheduledFrom   Job?    @relation("JobReschedule", fields: [rescheduledFromId], references: [id])
+  rescheduledTo     Job?    @relation("JobReschedule")
+
+  invoiceId String?  @db.Uuid
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  checklistTemplateId String?            @db.Uuid
+  checklistTemplate   ChecklistTemplate? @relation(fields: [checklistTemplateId], references: [id])
+
+  lines               JobLine[]
+  assignments         JobAssignment[]
+  checklistItems      JobChecklistItem[]
+  photos              JobPhoto[]
+  timeEntries         TimeEntry[]
+  consumables         JobConsumable[]
+  stockMovements      StockMovement[]
+  invoiceLines        InvoiceLine[]
+  rating              Rating?
+  packageUsage        PackageUsage?
+  referral            Referral?
+  tickets             Ticket[]            @relation("TicketJob")
+  reCleanFor          Ticket[]            @relation("TicketReCleanJob")
+  campaignConversions CampaignRecipient[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?   @db.Uuid
+  deletedAt   DateTime?
+  deletedById String?   @db.Uuid
+
+  @@index([scheduledStart])
+  @@index([teamId, scheduledStart])
+  @@index([clientId, scheduledStart])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("jobs")
+}
+
+/// A priced line inside a job — the main clean plus any add-ons sold on the day.
+model JobLine {
+  id            String       @id @default(uuid()) @db.Uuid
+  jobId         String       @db.Uuid
+  job           Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  serviceTypeId String?      @db.Uuid
+  serviceType   ServiceType? @relation(fields: [serviceTypeId], references: [id])
+  descriptionEn String
+  descriptionAr String?
+  quantity      Decimal      @default(1) @db.Decimal(10, 2)
+  unitPriceFils Int
+  discountFils  Int          @default(0)
+  lineTotalFils Int
+  sortOrder     Int          @default(0)
+
+  @@index([jobId])
+  @@map("job_lines")
+}
+
+/// Which individual cleaners actually went to a job — needed for the per-cleaner
+/// scorecard and for cost-per-job.
+model JobAssignment {
+  id      String  @id @default(uuid()) @db.Uuid
+  jobId   String  @db.Uuid
+  job     Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  staffId String  @db.Uuid
+  staff   Staff   @relation(fields: [staffId], references: [id])
+  isLead  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, staffId])
+  @@map("job_assignments")
+}
+
+// ============================================================================
+// SECTION 6 — FIELD OPERATIONS: checklists, photos, clock in/out, tickets
+// ============================================================================
+
+/// An admin-editable master checklist for a service type ("Deep clean — villa").
+model ChecklistTemplate {
+  id            String        @id @default(uuid()) @db.Uuid
+  serviceTypeId String?       @db.Uuid
+  serviceType   ServiceType?  @relation(fields: [serviceTypeId], references: [id])
+  propertyType  PropertyType?
+  nameEn        String
+  nameAr        String
+  version       Int           @default(1)
+  isActive      Boolean       @default(true)
+
+  items ChecklistTemplateItem[]
+  jobs  Job[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("checklist_templates")
+}
+
+/// One tick-box on a master checklist, and whether it is mandatory.
+model ChecklistTemplateItem {
+  id            String            @id @default(uuid()) @db.Uuid
+  templateId    String            @db.Uuid
+  template      ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  section       String? // "Kitchen", "Bathrooms"
+  labelEn       String
+  labelAr       String
+  isMandatory   Boolean           @default(true)
+  requiresPhoto Boolean           @default(false)
+  sortOrder     Int               @default(0)
+
+  jobItems JobChecklistItem[]
+
+  @@map("checklist_template_items")
+}
+
+/// A copy of one checklist line attached to one job, with its ticked state.
+/// It is a copy on purpose — editing a template must not rewrite past jobs.
+model JobChecklistItem {
+  id             String                 @id @default(uuid()) @db.Uuid
+  jobId          String                 @db.Uuid
+  job            Job                    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  templateItemId String?                @db.Uuid
+  templateItem   ChecklistTemplateItem? @relation(fields: [templateItemId], references: [id])
+
+  section     String?
+  labelEn     String
+  labelAr     String
+  isMandatory Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  isChecked        Boolean   @default(false)
+  checkedAt        DateTime?
+  checkedByStaffId String?   @db.Uuid
+  checkedByStaff   Staff?    @relation(fields: [checkedByStaffId], references: [id])
+  note             String?
+
+  @@index([jobId])
+  @@map("job_checklist_items")
+}
+
+/// A before/after/issue photo stored in Supabase Storage and shown in the client
+/// portal — the proof of work that stops most disputes.
+model JobPhoto {
+  id    String    @id @default(uuid()) @db.Uuid
+  jobId String    @db.Uuid
+  job   Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  kind  PhotoKind
+
+  storagePath   String // path inside the Supabase Storage bucket
+  thumbnailPath String?
+  caption       String?
+  roomLabel     String?
+  sizeBytes     Int?
+  width         Int?
+  height        Int?
+
+  takenByStaffId String?  @db.Uuid
+  takenByStaff   Staff?   @relation(fields: [takenByStaffId], references: [id])
+  takenAt        DateTime @default(now())
+  latitude       Float?
+  longitude      Float?
+
+  isVisibleToClient Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@index([jobId, kind])
+  @@map("job_photos")
+}
+
+/// A clock-in / clock-out pair with GPS coordinates. If the pin is more than
+/// 200 m from the property it is FLAGGED for review — never blocked.
+model TimeEntry {
+  id      String  @id @default(uuid()) @db.Uuid
+  staffId String  @db.Uuid
+  staff   Staff   @relation(fields: [staffId], references: [id])
+  jobId   String? @db.Uuid
+  job     Job?    @relation(fields: [jobId], references: [id])
+
+  clockInAt        DateTime
+  clockInLat       Float?
+  clockInLng       Float?
+  clockInAccuracyM Int?
+  clockInDistanceM Int? // metres from the property
+  clockInFlagged   Boolean  @default(false)
+
+  clockOutAt        DateTime?
+  clockOutLat       Float?
+  clockOutLng       Float?
+  clockOutAccuracyM Int?
+  clockOutDistanceM Int?
+  clockOutFlagged   Boolean   @default(false)
+
+  minutesWorked Int?
+  source        TimeEntrySource  @default(MOBILE)
+  reviewStatus  TimeReviewStatus @default(NOT_REQUIRED)
+  reviewedById  String?          @db.Uuid
+  reviewedAt    DateTime?
+  reviewNote    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId, clockInAt])
+  @@index([reviewStatus])
+  @@map("time_entries")
+}
+
+/// A problem that needs a human: damage found, no access, an on-site complaint,
+/// or a low rating. Raised from the field, lands in the Ops Manager's queue.
+model Ticket {
+  id       String @id @default(uuid()) @db.Uuid
+  ticketNo String @unique // TKT-2026-0001
+
+  type     TicketType
+  severity TicketSeverity @default(MEDIUM)
+  status   TicketStatus   @default(OPEN)
+
+  jobId    String? @db.Uuid
+  job      Job?    @relation("TicketJob", fields: [jobId], references: [id])
+  clientId String? @db.Uuid
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  raisedByStaffId  String? @db.Uuid
+  raisedByStaff    Staff?  @relation("TicketRaisedByStaff", fields: [raisedByStaffId], references: [id])
+  raisedByUserId   String? @db.Uuid
+  assignedToUserId String? @db.Uuid
+
+  subject     String
+  description String
+  resolution  String?
+  resolvedAt  DateTime?
+  closedAt    DateTime?
+
+  ratingId String? @unique @db.Uuid
+  rating   Rating? @relation(fields: [ratingId], references: [id])
+
+  // Free re-clean workflow — a manager must sign it off before it is scheduled
+  reCleanOffered      Boolean   @default(false)
+  reCleanApprovedById String?   @db.Uuid
+  reCleanApprovedAt   DateTime?
+  reCleanJobId        String?   @db.Uuid
+  reCleanJob          Job?      @relation("TicketReCleanJob", fields: [reCleanJobId], references: [id])
+  compensationFils    Int       @default(0)
+
+  comments    TicketComment[]
+  attachments TicketAttachment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([status, severity])
+  @@index([clientId])
+  @@map("tickets")
+}
+
+/// A note added to a ticket while it is being worked on.
+model TicketComment {
+  id         String  @id @default(uuid()) @db.Uuid
+  ticketId   String  @db.Uuid
+  ticket     Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId     String? @db.Uuid
+  body       String
+  isInternal Boolean @default(true) // false = the client can see it
+
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_comments")
+}
+
+/// A photo or document attached to a ticket (damage evidence, for example).
+model TicketAttachment {
+  id           String  @id @default(uuid()) @db.Uuid
+  ticketId     String  @db.Uuid
+  ticket       Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  storagePath  String
+  caption      String?
+  uploadedById String? @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  @@map("ticket_attachments")
+}
+
+// ============================================================================
+// SECTION 7 — BILLING: invoices, payments, credit notes, packages, dunning
+// ============================================================================
+
+/// Guarantees invoice numbers are sequential and never reused — a hard FTA
+/// requirement. One row per prefix per year, holding the last number issued.
+model DocumentCounter {
+  id         String @id @default(uuid()) @db.Uuid
+  prefix     String // INV, QT, CN, JOB, CL, LD, TKT, EMP
+  year       Int
+  lastNumber Int    @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([prefix, year])
+  @@map("document_counters")
+}
+
+/// A VAT invoice. Buyer name, address and TRN are copied onto it at issue time
+/// so a legal document never changes when a client edits their profile.
+model Invoice {
+  id        String      @id @default(uuid()) @db.Uuid
+  invoiceNo String      @unique // INV-2026-000318
+  type      InvoiceType @default(STANDARD)
+
+  clientId String @db.Uuid
+  client   Client @relation(fields: [clientId], references: [id])
+
+  status      InvoiceStatus @default(DRAFT)
+  issueDate   DateTime      @db.Date
+  dueDate     DateTime      @db.Date
+  periodStart DateTime?     @db.Date // for consolidated monthly invoices
+  periodEnd   DateTime?     @db.Date
+
+  currency       String @default("AED")
+  vatRateBps     Int    @default(500)
+  subtotalFils   Int    @default(0)
+  discountFils   Int    @default(0)
+  vatFils        Int    @default(0)
+  totalFils      Int    @default(0)
+  amountPaidFils Int    @default(0)
+  balanceFils    Int    @default(0)
+
+  // Frozen snapshot for FTA compliance
+  supplierName    String?
+  supplierTrn     String?
+  supplierAddress String?
+  buyerName       String?
+  buyerTrn        String?
+  buyerAddress    String?
+
+  notesEn String?
+  notesAr String?
+  pdfUrl  String?
+
+  stripePaymentLinkUrl  String?
+  stripePaymentIntentId String?
+
+  sentAt     DateTime?
+  paidAt     DateTime?
+  voidedAt   DateTime?
+  voidReason String?
+
+  lines          InvoiceLine[]
+  payments       Payment[]
+  creditNotes    CreditNote[]
+  dunningEvents  DunningEvent[]
+  jobs           Job[]
+  clientPackages ClientPackage[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?   @db.Uuid
+  deletedAt   DateTime?
+
+  @@index([clientId, status])
+  @@index([status, dueDate])
+  @@map("invoices")
+}
+
+/// One line on an invoice, with its own VAT figure so mixed-rate invoices stay correct.
+model InvoiceLine {
+  id            String       @id @default(uuid()) @db.Uuid
+  invoiceId     String       @db.Uuid
+  invoice       Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  jobId         String?      @db.Uuid
+  job           Job?         @relation(fields: [jobId], references: [id])
+  serviceTypeId String?      @db.Uuid
+  serviceType   ServiceType? @relation(fields: [serviceTypeId], references: [id])
+
+  descriptionEn String
+  descriptionAr String?
+  quantity      Decimal @default(1) @db.Decimal(10, 2)
+  unitPriceFils Int
+  discountFils  Int     @default(0)
+  vatRateBps    Int     @default(500)
+  vatFils       Int     @default(0)
+  lineTotalFils Int
+  sortOrder     Int     @default(0)
+
+  @@index([invoiceId])
+  @@map("invoice_lines")
+}
+
+/// Money actually received — a Stripe card payment or a manually recorded cash,
+/// cheque or bank transfer, with a reconciliation stamp.
+model Payment {
+  id        String @id @default(uuid()) @db.Uuid
+  paymentNo String @unique // PAY-2026-000451
+
+  invoiceId String?  @db.Uuid
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+  clientId  String   @db.Uuid
+  client    Client   @relation(fields: [clientId], references: [id])
+
+  method     PaymentMethod
+  status     PaymentStatus @default(SUCCEEDED)
+  amountFils Int
+  receivedAt DateTime
+  reference  String? // cheque number, bank transfer reference
+
+  stripePaymentIntentId String?
+  stripeChargeId        String?
+  stripeFeeFils         Int?
+
+  recordedById   String?   @db.Uuid
+  reconciledAt   DateTime?
+  reconciledById String?   @db.Uuid
+  notes          String?
+  receiptUrl     String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([clientId])
+  @@index([invoiceId])
+  @@index([receivedAt])
+  @@map("payments")
+}
+
+/// The legal way to cancel or reduce an already-issued invoice, plus any refund
+/// paid back — never delete an invoice, always credit it.
+model CreditNote {
+  id           String           @id @default(uuid()) @db.Uuid
+  creditNoteNo String           @unique // CN-2026-0012
+  invoiceId    String?          @db.Uuid
+  invoice      Invoice?         @relation(fields: [invoiceId], references: [id])
+  clientId     String           @db.Uuid
+  client       Client           @relation(fields: [clientId], references: [id])
+  status       CreditNoteStatus @default(DRAFT)
+
+  reason    String
+  issueDate DateTime @db.Date
+
+  subtotalFils Int @default(0)
+  vatRateBps   Int @default(500)
+  vatFils      Int @default(0)
+  totalFils    Int @default(0)
+
+  refundedAmountFils Int            @default(0)
+  refundMethod       PaymentMethod?
+  refundedAt         DateTime?
+
+  approvedById String?   @db.Uuid
+  approvedAt   DateTime?
+  appliedAt    DateTime?
+  pdfUrl       String?
+
+  lines CreditNoteLine[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?   @db.Uuid
+  deletedAt   DateTime?
+
+  @@index([clientId])
+  @@map("credit_notes")
+}
+
+/// One line of a credit note.
+model CreditNoteLine {
+  id            String     @id @default(uuid()) @db.Uuid
+  creditNoteId  String     @db.Uuid
+  creditNote    CreditNote @relation(fields: [creditNoteId], references: [id], onDelete: Cascade)
+  descriptionEn String
+  descriptionAr String?
+  quantity      Decimal    @default(1) @db.Decimal(10, 2)
+  unitPriceFils Int
+  vatRateBps    Int        @default(500)
+  vatFils       Int        @default(0)
+  lineTotalFils Int
+  sortOrder     Int        @default(0)
+
+  @@map("credit_note_lines")
+}
+
+/// A prepaid bundle you sell — "10 regular cleans for the price of 9".
+model Package {
+  id            String       @id @default(uuid()) @db.Uuid
+  code          String       @unique
+  nameEn        String
+  nameAr        String
+  serviceTypeId String?      @db.Uuid
+  serviceType   ServiceType? @relation(fields: [serviceTypeId], references: [id])
+  sessions      Int
+  priceFils     Int // what the client pays
+  listPriceFils Int // what the same sessions would cost individually
+  validityDays  Int          @default(365)
+  isActive      Boolean      @default(true)
+
+  clientPackages ClientPackage[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("packages")
+}
+
+/// A bundle a specific client has bought, and how many sessions are left on it.
+model ClientPackage {
+  id        String   @id @default(uuid()) @db.Uuid
+  packageNo String   @unique
+  clientId  String   @db.Uuid
+  client    Client   @relation(fields: [clientId], references: [id])
+  packageId String   @db.Uuid
+  package   Package  @relation(fields: [packageId], references: [id])
+  invoiceId String?  @db.Uuid
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  sessionsTotal Int
+  sessionsUsed  Int                 @default(0)
+  pricePaidFils Int
+  purchasedAt   DateTime            @default(now())
+  expiresAt     DateTime?
+  status        ClientPackageStatus @default(ACTIVE)
+
+  usages PackageUsage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId, status])
+  @@map("client_packages")
+}
+
+/// The ledger line proving exactly which job used up which prepaid session —
+/// reversible if a job is later cancelled.
+model PackageUsage {
+  id              String        @id @default(uuid()) @db.Uuid
+  clientPackageId String        @db.Uuid
+  clientPackage   ClientPackage @relation(fields: [clientPackageId], references: [id], onDelete: Cascade)
+  jobId           String        @unique @db.Uuid
+  job             Job           @relation(fields: [jobId], references: [id])
+  sessionsUsed    Int           @default(1)
+  usedAt          DateTime      @default(now())
+  reversedAt      DateTime?
+  reversedReason  String?
+
+  @@map("package_usages")
+}
+
+/// A scheduled payment reminder (on the due date, +3 days, +7 days) and whether
+/// it actually went out.
+model DunningEvent {
+  id        String  @id @default(uuid()) @db.Uuid
+  invoiceId String  @db.Uuid
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  step         Int // 1, 2, 3
+  offsetDays   Int
+  channel      Channel       @default(BOTH)
+  scheduledFor DateTime
+  status       DunningStatus @default(SCHEDULED)
+  sentAt       DateTime?
+  messageLogId String?       @db.Uuid
+  messageLog   MessageLog?   @relation(fields: [messageLogId], references: [id])
+  error        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([invoiceId, step])
+  @@index([status, scheduledFor])
+  @@map("dunning_events")
+}
+
+// ============================================================================
+// SECTION 8 — RETENTION & QUALITY: ratings, NPS, risk flags, campaigns
+// ============================================================================
+
+/// The client's 1–5 star review of one job. Below 4 opens a complaint ticket;
+/// exactly 5 offers them the Google review link.
+model Rating {
+  id       String @id @default(uuid()) @db.Uuid
+  jobId    String @unique @db.Uuid
+  job      Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  clientId String @db.Uuid
+  client   Client @relation(fields: [clientId], references: [id])
+
+  stars            Int
+  punctualityStars Int?
+  qualityStars     Int?
+  comment          String?
+
+  /// Single-use secret in the rating link, so nobody can rate on someone's behalf.
+  token         String    @unique
+  requestSentAt DateTime?
+  submittedAt   DateTime?
+
+  googleReviewShownAt   DateTime?
+  googleReviewClickedAt DateTime?
+
+  ticket Ticket?
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([stars])
+  @@map("ratings")
+}
+
+/// A quarterly "how likely are you to recommend us, 0–10" response.
+model NpsResponse {
+  id       String @id @default(uuid()) @db.Uuid
+  clientId String @db.Uuid
+  client   Client @relation(fields: [clientId], references: [id])
+
+  quarter     String // "2026-Q1"
+  score       Int?
+  comment     String?
+  token       String    @unique
+  sentAt      DateTime?
+  respondedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@unique([clientId, quarter])
+  @@map("nps_responses")
+}
+
+/// A "this client is about to leave" warning with the reason and the suggested
+/// action — the rows behind the Clients at Risk list.
+model ClientRiskFlag {
+  id              String     @id @default(uuid()) @db.Uuid
+  clientId        String     @db.Uuid
+  client          Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  reason          RiskReason
+  detail          String
+  score           Int        @default(0) // 0–100, higher = more urgent
+  suggestedAction String
+  status          RiskStatus @default(OPEN)
+
+  detectedAt     DateTime  @default(now())
+  resolvedAt     DateTime?
+  resolvedById   String?   @db.Uuid
+  resolutionNote String?
+
+  @@index([status, score])
+  @@index([clientId])
+  @@map("client_risk_flags")
+}
+
+/// A batch of outbound messages (win-back offer, NPS survey, promo) that a
+/// manager must approve before a single message is sent.
+model Campaign {
+  id         String           @id @default(uuid()) @db.Uuid
+  type       CampaignType
+  name       String
+  channel    Channel          @default(BOTH)
+  templateId String?          @db.Uuid
+  template   MessageTemplate? @relation(fields: [templateId], references: [id])
+  status     CampaignStatus   @default(DRAFT)
+
+  approvedById String?   @db.Uuid
+  approvedAt   DateTime?
+  scheduledFor DateTime?
+  sentAt       DateTime?
+
+  recipients CampaignRecipient[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String?  @db.Uuid
+
+  @@map("campaigns")
+}
+
+/// One client inside a campaign, and whether the message reached them / worked.
+model CampaignRecipient {
+  id             String          @id @default(uuid()) @db.Uuid
+  campaignId     String          @db.Uuid
+  campaign       Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  clientId       String          @db.Uuid
+  client         Client          @relation(fields: [clientId], references: [id])
+  status         RecipientStatus @default(PENDING)
+  sentAt         DateTime?
+  error          String?
+  /// If they booked because of this campaign, the job that proves it.
+  convertedJobId String?         @db.Uuid
+  convertedJob   Job?            @relation(fields: [convertedJobId], references: [id])
+
+  @@unique([campaignId, clientId])
+  @@map("campaign_recipients")
+}
+
+// ============================================================================
+// SECTION 9 — COMMUNICATIONS
+// ============================================================================
+
+/// An admin-editable email / WhatsApp wording template, in English and Arabic.
+model MessageTemplate {
+  id          String  @id @default(uuid()) @db.Uuid
+  code        String  @unique // QUOTE_SENT, INVOICE_DUE, RATING_REQUEST…
+  description String
+  channel     Channel @default(BOTH)
+  subjectEn   String?
+  subjectAr   String?
+  bodyEn      String
+  bodyAr      String
+  isActive    Boolean @default(true)
+
+  campaigns Campaign[]
+  messages  MessageLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("message_templates")
+}
+
+/// A record of every email sent and every WhatsApp link generated — your proof
+/// that the client was told, and the reason a reminder never fires twice.
+model MessageLog {
+  id         String           @id @default(uuid()) @db.Uuid
+  channel    Channel
+  templateId String?          @db.Uuid
+  template   MessageTemplate? @relation(fields: [templateId], references: [id])
+  clientId   String?          @db.Uuid
+  client     Client?          @relation(fields: [clientId], references: [id])
+
+  toEmail String?
+  toPhone String?
+  subject String?
+  body    String?
+
+  /// What this message was about, e.g. entity "Invoice" + that invoice's id.
+  relatedEntity String?
+  relatedId     String?
+
+  status     MessageStatus @default(QUEUED)
+  providerId String? // Resend message id
+  error      String?
+  sentAt     DateTime?
+
+  dunningEvents DunningEvent[]
+
+  createdAt DateTime @default(now())
+
+  @@index([relatedEntity, relatedId])
+  @@index([clientId, createdAt])
+  @@map("message_logs")
+}
+
+// ============================================================================
+// SECTION 10 — INVENTORY & ASSETS
+// ============================================================================
+
+/// A consumable you buy and use up — chemicals, cloths, bin bags — with its
+/// current stock level and reorder point.
+model InventoryItem {
+  id       String        @id @default(uuid()) @db.Uuid
+  sku      String        @unique
+  nameEn   String
+  nameAr   String
+  category String?
+  unit     UnitOfMeasure @default(PIECE)
+
+  currentQty   Decimal @default(0) @db.Decimal(12, 3)
+  reorderLevel Decimal @default(0) @db.Decimal(12, 3)
+  unitCostFils Int     @default(0)
+
+  supplier          String?
+  storageLocation   String?
+  isActive          Boolean   @default(true)
+  lowStockAlertedAt DateTime?
+
+  movements      StockMovement[]
+  jobConsumables JobConsumable[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("inventory_items")
+}
+
+/// Every stock in / stock out event — purchases, issues to a team, wastage —
+/// so the current quantity is always explainable.
+model StockMovement {
+  id     String            @id @default(uuid()) @db.Uuid
+  itemId String            @db.Uuid
+  item   InventoryItem     @relation(fields: [itemId], references: [id])
+  type   StockMovementType
+
+  /// Positive adds stock, negative removes it.
+  quantity     Decimal @db.Decimal(12, 3)
+  unitCostFils Int     @default(0)
+
+  teamId  String? @db.Uuid
+  team    Team?   @relation(fields: [teamId], references: [id])
+  jobId   String? @db.Uuid
+  job     Job?    @relation(fields: [jobId], references: [id])
+  staffId String? @db.Uuid
+  staff   Staff?  @relation(fields: [staffId], references: [id])
+
+  reference   String?
+  note        String?
+  occurredAt  DateTime @default(now())
+  createdById String?  @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  @@index([itemId, occurredAt])
+  @@map("stock_movements")
+}
+
+/// How much chemical/consumable cost is charged to one job — this is what turns
+/// revenue per job into profit per job.
+model JobConsumable {
+  id       String        @id @default(uuid()) @db.Uuid
+  jobId    String        @db.Uuid
+  job      Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  itemId   String        @db.Uuid
+  item     InventoryItem @relation(fields: [itemId], references: [id])
+  quantity Decimal       @db.Decimal(12, 3)
+  costFils Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, itemId])
+  @@map("job_consumables")
+}
+
+/// A machine you own — vacuum, extractor, pressure washer — who is holding it
+/// and when it is next due for service.
+model Equipment {
+  id           String  @id @default(uuid()) @db.Uuid
+  assetTag     String  @unique
+  nameEn       String
+  nameAr       String
+  category     String?
+  serialNumber String?
+
+  purchaseDate      DateTime?
+  purchaseCostFils  Int       @default(0)
+  warrantyExpiresAt DateTime?
+
+  assignedTeamId  String? @db.Uuid
+  assignedTeam    Team?   @relation(fields: [assignedTeamId], references: [id])
+  assignedStaffId String? @db.Uuid
+  assignedStaff   Staff?  @relation(fields: [assignedStaffId], references: [id])
+
+  status                  EquipmentStatus @default(IN_SERVICE)
+  maintenanceIntervalDays Int?
+  lastMaintenanceAt       DateTime?
+  nextMaintenanceDueAt    DateTime?
+  notes                   String?
+
+  maintenanceRecords EquipmentMaintenance[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([nextMaintenanceDueAt])
+  @@map("equipment")
+}
+
+/// A service or repair that was carried out on a machine, what it cost, and when
+/// the next one is due.
+model EquipmentMaintenance {
+  id           String          @id @default(uuid()) @db.Uuid
+  equipmentId  String          @db.Uuid
+  equipment    Equipment       @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  type         MaintenanceType @default(SCHEDULED)
+  performedAt  DateTime
+  costFils     Int             @default(0)
+  vendor       String?
+  notes        String?
+  nextDueAt    DateTime?
+  recordedById String?         @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  @@index([equipmentId, performedAt])
+  @@map("equipment_maintenance")
+}
