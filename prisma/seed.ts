@@ -175,14 +175,24 @@ async function main() {
   ];
 
   const zones: Zone[] = [];
+  const zoneCoords = new Map<string, { lat: number; lng: number }>();
   for (let i = 0; i < zoneSpec.length; i++) {
     const z = zoneSpec[i];
-    zones.push(
-      await prisma.zone.create({
-        data: { nameEn: z.nameEn, nameAr: z.nameAr, emirate: "Dubai", sortOrder: i },
-      }),
-    );
+    const created = await prisma.zone.create({
+      data: { nameEn: z.nameEn, nameAr: z.nameAr, emirate: "Dubai", sortOrder: i },
+    });
+    zones.push(created);
+    zoneCoords.set(created.id, { lat: z.lat, lng: z.lng });
   }
+
+  /** A point within roughly a kilometre of the middle of a zone. */
+  const pointNear = (zoneId: string) => {
+    const centre = zoneCoords.get(zoneId)!;
+    return {
+      latitude: centre.lat + (rnd() - 0.5) * 0.018,
+      longitude: centre.lng + (rnd() - 0.5) * 0.018,
+    };
+  };
 
   const clusterOf = (id: string) => zoneSpec[zones.findIndex((z) => z.id === id)].cluster;
   const travelRows: { fromZoneId: string; toZoneId: string; minutes: number }[] = [];
@@ -572,6 +582,9 @@ async function main() {
             city: "Dubai",
             emirate: "Dubai",
             makaniNumber: `${int(10000000, 99999999)}${int(10, 99)}`,
+            // Real coordinates, so the 200m geofence has something to check.
+            latitude: pointNear(zone.id).latitude,
+            longitude: pointNear(zone.id).longitude,
             bedrooms: propertyType === "OFFICE" ? null : bedrooms,
             bathrooms,
             sqm,
@@ -959,6 +972,121 @@ async function main() {
       await prisma.client.update({ where: { id: client.id }, data: { lastJobAt: end } });
     }
   }
+
+  // -------------------------------------------------------------------------
+  // 10b. Give the demo CLEANER a realistic day.
+  //
+  // Statuses above are random, so the demo cleaner's team can easily end up
+  // with nothing but finished work — and then whoever opens the mobile app
+  // cannot try clocking in, ticking a checklist or finishing a job at all.
+  // This makes sure their day has one done, one under way, and some still to do.
+  // -------------------------------------------------------------------------
+  const demoTeamId = teams[0].id;
+  const todayStart = day(0);
+  const todayEnd = day(1);
+
+  let demoTodayJobs = await prisma.job.findMany({
+    where: { teamId: demoTeamId, scheduledStart: { gte: todayStart, lt: todayEnd } },
+    orderBy: { scheduledStart: "asc" },
+    select: { id: true },
+  });
+
+  // Not enough work on their plate today? Borrow from another team.
+  if (demoTodayJobs.length < 3) {
+    const borrow = await prisma.job.findMany({
+      where: {
+        teamId: { not: demoTeamId },
+        scheduledStart: { gte: todayStart, lt: todayEnd },
+        status: { not: "CANCELLED" },
+      },
+      take: 3 - demoTodayJobs.length,
+      select: { id: true },
+    });
+    if (borrow.length > 0) {
+      await prisma.job.updateMany({
+        where: { id: { in: borrow.map((j) => j.id) } },
+        data: { teamId: demoTeamId },
+      });
+      await prisma.jobAssignment.deleteMany({ where: { jobId: { in: borrow.map((j) => j.id) } } });
+      const demoMembers = await prisma.teamMember.findMany({
+        where: { teamId: demoTeamId, leftAt: null },
+      });
+      for (const jobId of borrow.map((j) => j.id)) {
+        for (const m of demoMembers.slice(0, 2)) {
+          await prisma.jobAssignment.create({
+            data: { jobId, staffId: m.staffId, isLead: m.isLead },
+          });
+        }
+      }
+      demoTodayJobs = await prisma.job.findMany({
+        where: { teamId: demoTeamId, scheduledStart: { gte: todayStart, lt: todayEnd } },
+        orderBy: { scheduledStart: "asc" },
+        select: { id: true },
+      });
+    }
+  }
+
+  const demoPlan: JobStatus[] = ["COMPLETED", "IN_PROGRESS", "SCHEDULED", "SCHEDULED", "SCHEDULED"];
+  for (let i = 0; i < demoTodayJobs.length; i++) {
+    const jobId = demoTodayJobs[i].id;
+    const status = demoPlan[i] ?? "SCHEDULED";
+    const job = await prisma.job.findUniqueOrThrow({
+      where: { id: jobId },
+      select: { scheduledStart: true, scheduledEnd: true },
+    });
+
+    await prisma.job.update({
+      where: { id: jobId },
+      data: {
+        status,
+        actualStart: status === "COMPLETED" || status === "IN_PROGRESS" ? job.scheduledStart : null,
+        actualEnd: status === "COMPLETED" ? job.scheduledEnd : null,
+        cancelledAt: null,
+        cancellationReason: null,
+      },
+    });
+
+    // The checklist has to match the story: all ticked when finished, partly
+    // ticked while under way, untouched before anyone has arrived.
+    const items = await prisma.jobChecklistItem.findMany({
+      where: { jobId }, orderBy: { sortOrder: "asc" }, select: { id: true },
+    });
+    const tickUpTo =
+      status === "COMPLETED" ? items.length : status === "IN_PROGRESS" ? Math.floor(items.length / 3) : 0;
+
+    await prisma.jobChecklistItem.updateMany({
+      where: { jobId },
+      data: { isChecked: false, checkedAt: null, checkedByStaffId: null },
+    });
+    if (tickUpTo > 0) {
+      await prisma.jobChecklistItem.updateMany({
+        where: { id: { in: items.slice(0, tickUpTo).map((i) => i.id) } },
+        data: { isChecked: true, checkedAt: job.scheduledStart },
+      });
+    }
+
+    // Only a finished job has a completed timesheet; one under way is still open.
+    await prisma.timeEntry.deleteMany({ where: { jobId } });
+    if (status !== "SCHEDULED") {
+      await prisma.timeEntry.create({
+        data: {
+          staffId: staff[0].id,
+          jobId,
+          clockInAt: job.scheduledStart,
+          clockInDistanceM: int(5, 120),
+          clockInFlagged: false,
+          clockOutAt: status === "COMPLETED" ? job.scheduledEnd : null,
+          minutesWorked:
+            status === "COMPLETED"
+              ? Math.round((job.scheduledEnd.getTime() - job.scheduledStart.getTime()) / 60000)
+              : null,
+          source: "MOBILE",
+          reviewStatus: "NOT_REQUIRED",
+        },
+      });
+    }
+  }
+  console.log(`Demo cleaner's day: ${demoTodayJobs.length} jobs on ${teams[0].name}.`);
 
   console.log(`Created ${jobSeq} jobs (${completedJobs.length} completed). Invoicing them…`);
 

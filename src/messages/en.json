@@ -91,7 +91,88 @@
   },
   "field": {
     "title": "Today's jobs",
-    "greeting": "Hello {name}"
+    "greeting": "Hello {name}",
+    "back": "Back",
+    "noJobs": "Nothing scheduled for you today.",
+    "noStaffRecord": "Your login is not linked to an employee record yet. Ask the office to set that up — until then no jobs can be shown.",
+    "onSite": "On site",
+    "minutes": "{count} min",
+    "checklistProgress": "{done}/{total} done",
+    "allergy": "Allergy",
+    "pets": "Pets on site",
+    "keyHeld": "We hold the key",
+    "directions": "Get directions",
+    "summary": {
+      "jobs": "Jobs",
+      "done": "Done",
+      "hours": "Hours"
+    },
+    "access": {
+      "gateCode": "Gate code",
+      "notes": "Access",
+      "parking": "Parking",
+      "clientNotes": "Client note"
+    },
+    "clock": {
+      "clockIn": "Clock in",
+      "clockOut": "Clock out",
+      "clockedIn": "Clocked in",
+      "clockedOut": "Clocked out",
+      "findingYou": "Finding you…",
+      "saving": "Saving…",
+      "finished": "Shift recorded",
+      "startedAt": "Started {time}",
+      "endedAt": "finished {time}",
+      "noLocation": "We could not read your location. Saved anyway — the office will check it.",
+      "farAway": "Recorded {metres} m from the address. Saved anyway — the office will check it."
+    },
+    "checklist": {
+      "title": "Checklist",
+      "none": "No checklist for this service.",
+      "progress": "{done} of {total} done",
+      "outstanding": "{count} required left",
+      "required": "Required"
+    },
+    "photos": {
+      "title": "Photos",
+      "before": "Before",
+      "after": "After",
+      "take": "Add photo",
+      "none": "None yet",
+      "uploaded": "{count} photo(s) added",
+      "uploadingOf": "Uploading {current} of {total}…",
+      "failed": "That photo could not be added.",
+      "storageOff": "Photo storage is not set up yet, so photos cannot be added. Everything else on this job works normally."
+    },
+    "issue": {
+      "button": "Report a problem",
+      "title": "Report a problem",
+      "body": "This goes straight to the office. You do not need to phone anyone.",
+      "type": "What happened?",
+      "types": {
+        "DAMAGE": "Damage found",
+        "NO_ACCESS": "No access",
+        "ON_SITE_COMPLAINT": "Client unhappy",
+        "EQUIPMENT_FAULT": "Equipment fault",
+        "OTHER": "Something else"
+      },
+      "subject": "In a few words",
+      "subjectPlaceholder": "Chipped tile in the bathroom",
+      "detail": "What should the office know?",
+      "detailPlaceholder": "Found on arrival, before we started. Photo added.",
+      "noAccessNote": "Reporting no access also marks this job as no-access, so the office can see it straight away.",
+      "cancel": "Cancel",
+      "send": "Send to office",
+      "sent": "Reported — ticket {ticketNo}"
+    },
+    "complete": {
+      "finish": "Finish job",
+      "done": "Job finished",
+      "blocked": "{count} required item(s) still to tick",
+      "clockInFirst": "Clock in before finishing.",
+      "noPhotosYet": "No photos added yet.",
+      "noPhotosWarning": "No before/after photos were added."
+    }
   },
   "portal": {
     "title": "My account",

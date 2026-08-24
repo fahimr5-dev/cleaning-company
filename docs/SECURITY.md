@@ -47,22 +47,31 @@ empty list.
 The public marketing site and quote calculator (Phase 2) will therefore read
 their data on the server, not from the browser.
 
-## The honest limitation
+## How the second lock is applied (updated in Phase 4)
 
-**Prisma connects as the database owner and is not subject to these rules.**
+**Office screens** use the ordinary database connection, which connects as the
+owner and is *not* subject to the row rules. Those users are allowed to see
+everything anyway, so the row rules are not the protection that matters there —
+`requireRole()` is.
 
-Prisma is used for migrations, the demo-data seed, and reading data for office
-screens *after* `requireRole()` has already confirmed the person is office
-staff. Those users are allowed to see everything anyway, so the row rules are
-not the protection that matters there.
+**The cleaner app** (and, from the next phase, the client portal) runs every
+query through `withUserRls()` in `src/lib/rls.ts`. That opens a transaction,
+tells Postgres "for the next few queries you are this user, with no special
+privileges", and runs the work there. Every rule in this document then applies.
 
-Where it genuinely matters — the cleaner app and the client portal — data will
-be read through the Supabase client, which carries the signed-in person's
-identity and is fully subject to the rules above.
+This is the same mechanism Supabase uses behind its own API; we simply do it
+from our own server. It means a badly written query on the cleaner app returns
+nothing it should not — the database refuses, regardless of what the code asked
+for. Ten tests in `tests/rls-context.test.ts` prove it, including that the
+restricted role never leaks into the next request on the same connection.
 
-Practically, this means: **a bug in an office screen could show an owner
-something an ops manager should not see.** A bug in the cleaner or client app
-could not, because the database would refuse.
+Practically: **a bug in an office screen could show an owner something an ops
+manager should not see. A bug in the cleaner app could not.**
+
+> One rule when writing queries inside `withUserRls`: run them one at a time.
+> A transaction holds a single database connection, and a connection can carry
+> only one query at a time, so `Promise.all` there makes the driver interleave
+> them on one wire.
 
 ### Also not yet handled
 
@@ -70,6 +79,10 @@ could not, because the database would refuse.
   record and therefore sees the salary fields on it. Postgres can restrict
   individual columns, but that is a separate mechanism from RLS.
   **TODO (Phase 7):** hide salary columns from `OPS_MANAGER`.
+- **Photo storage rules are written but untested here.** The bucket policies in
+  `prisma/sql/02_storage.sql` can only run inside a real Supabase project, so
+  they have been reviewed but not executed. Run `npm run test:rls` after
+  applying them, and check that a cleaner cannot open another team's photo.
 - ~~The audit log is not yet written to.~~ **Done in Phase 2.** Lead moves,
   conversions, client billing changes and booking pauses all write to it via
   `recordAudit()` in `src/lib/audit.ts`.

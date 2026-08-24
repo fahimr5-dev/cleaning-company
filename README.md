@@ -3,11 +3,13 @@
 Management platform for a residential and commercial cleaning company operating
 in the UAE.
 
-**Status: Phase 3 of 8 complete.** Working today: the public website with its
+**Status: Phase 4 of 8 complete.** Working today: the public website with its
 instant-quote calculator, the lead pipeline, client records with referral
-tracking, and the weekly drag-and-drop schedule with its recurring-booking
-engine, conflict detection and capacity view. Screens from later phases show a
-clearly-labelled placeholder rather than anything that pretends to work.
+tracking, the weekly drag-and-drop schedule with its recurring-booking engine
+and conflict detection, and the cleaner's mobile view with GPS clock in/out,
+digital checklists, photos and on-site issue reporting. Screens from later
+phases show a clearly-labelled placeholder rather than anything that pretends
+to work.
 
 ## Getting started
 
@@ -28,7 +30,7 @@ npm run dev              # http://localhost:3000
 | 1 | Auth, roles, database schema, seed data, admin shell | **Done** |
 | 2 | Clients, leads, quote calculator, public site | **Done** |
 | 3 | Scheduling and the recurring job engine | **Done** |
-| 4 | Cleaner mobile view, checklists, photos | Not started |
+| 4 | Cleaner mobile view, checklists, photos | **Done** |
 | 5 | Invoicing, Stripe, dunning | Not started |
 | 6 | Ratings, retention, referrals | Not started |
 | 7 | Staff/HR and inventory | Not started |
@@ -63,9 +65,14 @@ shadcn/ui · Supabase (Postgres, Auth, Storage, RLS) · Prisma 7 · next-intl
 - **Impossible is refused; merely difficult is questioned.** A move that would
   put one team in two places at once is blocked. A tight cross-city drive is a
   warning you can override — you know about the traffic, the software does not.
-- **Date and scheduling maths is pure and tested.** `src/lib/recurrence.ts` and
-  `src/lib/scheduling.ts` take no database and no clock of their own, which is
-  why 75 tests can cover them directly.
+- **Date and scheduling maths is pure and tested.** `src/lib/recurrence.ts`,
+  `src/lib/scheduling.ts` and `src/lib/field-ops.ts` take no database and no
+  clock of their own, which is why the tests can cover them directly.
+- **The cleaner app runs under the database's own security rules.** Every query
+  goes through `withUserRls()`, so Postgres — not our code — decides what comes
+  back. See [docs/SECURITY.md](./docs/SECURITY.md).
+- **The geofence flags, it never blocks.** A cleaner standing in a client's
+  kitchen with no GPS signal must still be able to start work.
 
 ## Security
 
@@ -91,3 +98,4 @@ what this model does *not* yet cover.
 | `npm test` | Run the money and pricing tests |
 | `npm run test:e2e` | Drive the real quote calculator in a browser |
 | `npm run test:e2e:schedule` | Drive the real schedule board in a browser |
+| `npm run test:e2e:field` | Drive the cleaner's mobile view at phone size |
