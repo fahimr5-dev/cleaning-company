@@ -27,9 +27,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL") // pooled connection, used by the app
-  directUrl = env("DIRECT_URL") // direct connection, used by migrations
+  provider = "postgresql"
 }
 
 // ============================================================================
