@@ -43,7 +43,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: "money",
     items: [
-      { href: "/invoices", key: "invoices", icon: ReceiptText, roles: OWNER_ONLY, phase: 5 },
+      { href: "/invoices", key: "invoices", icon: ReceiptText, roles: OFFICE },
       { href: "/reports", key: "reports", icon: BarChart3, roles: OWNER_ONLY, phase: 8 },
     ],
   },

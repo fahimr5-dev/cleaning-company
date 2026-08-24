@@ -87,6 +87,31 @@ manager should not see. A bug in the cleaner app could not.**
   conversions, client billing changes and booking pauses all write to it via
   `recordAudit()` in `src/lib/audit.ts`.
 
+## Money (added in Phase 5)
+
+Money is the one area where the app is deliberately stricter than "can you see
+this page".
+
+- **An ops manager may read invoices, but may not touch them.** The invoices
+  screens render for them read-only: no payment button, no credit note, no
+  billing run, no reconcile. Every one of those Server Actions independently
+  calls `requireRole(locale, "OWNER")`, and the database refuses the write even
+  if the app somehow asked (`ops CANNOT record a payment` in the RLS suite
+  returns Postgres error 42501).
+- **A client sees only their own invoices**, including the PDF: the PDF route
+  returns **404**, not 403, for anyone else — a 403 would confirm the invoice
+  exists.
+- **Nothing is ever deleted.** A wrong invoice is corrected with a credit note,
+  which cannot exceed the invoice it credits. Voiding, crediting and refunding
+  all write to the audit log.
+- **The Stripe webhook is signature-verified and idempotent.** An unsigned or
+  wrongly-signed request is rejected with 400. A replayed event finds the
+  payment already recorded (matched on `stripePaymentIntentId`) and changes
+  nothing. If `STRIPE_WEBHOOK_SECRET` is missing, the route refuses every
+  request rather than trusting unverified input.
+- **The daily reminder job refuses to run without `CRON_SECRET`**, so nobody can
+  trigger your customer emails by visiting a URL.
+
 ## After every future migration
 
 A new table created by a migration starts with **no rules on it at all**. Always

@@ -9,6 +9,7 @@ import { recordAudit } from "@/lib/audit";
 import { nextDocumentNumber } from "@/lib/document-number";
 import { checkGeofence, canCompleteJob, minutesWorked } from "@/lib/field-ops";
 import { uploadJobPhoto, isStorageConfigured } from "@/lib/storage";
+import { billCompletedJob } from "@/lib/invoicing";
 import { ISSUE_TYPES } from "@/lib/field-shared";
 
 /**
@@ -311,8 +312,33 @@ export async function completeJobAction(raw: unknown): Promise<Result<{ warning?
       summary: `Job ${result.jobNo} marked complete from the field`,
       after: { status: "COMPLETED" },
     });
+
+    // Finishing a job is what triggers billing: a prepaid session is used, an
+    // invoice is raised, or it waits for the month-end run — depending on the
+    // client's settings. A billing failure must never lose the completed job,
+    // so it is logged loudly rather than thrown.
+    try {
+      const outcome = await billCompletedJob(jobId);
+      if (outcome.kind === "INVOICED") {
+        await recordAudit({
+          action: "CREATE",
+          entity: "Invoice",
+          entityId: outcome.invoiceId,
+          summary: `Invoice ${outcome.invoiceNo} raised automatically for job ${result.jobNo}`,
+        });
+      }
+    } catch (error) {
+      console.error(
+        `\n!! BILLING FAILED for completed job ${result.jobNo}. The job IS saved as` +
+          " complete; it simply has no invoice yet. Raise one by hand from the" +
+          " Invoices screen.\n",
+        error,
+      );
+    }
+
     revalidatePath(`/${locale}/field`);
     revalidatePath(`/${locale}/field/${jobId}`);
+    revalidatePath(`/${locale}/invoices`);
   }
   return result;
 }

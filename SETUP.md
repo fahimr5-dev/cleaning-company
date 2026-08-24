@@ -164,6 +164,36 @@ password-reset emails will not work.
 
 ---
 
+## Step 9 — Turn on payments and reminders  (Phase 5)
+
+Everything below is optional to *look* at CleanOS, but required before you can
+actually take money.
+
+**Card payments.** Fill in `STRIPE_SECRET_KEY` and
+`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` from Section 4 of `.env.example`. Use the
+test keys (`sk_test_…`) first. Until you do, the "Create card payment link"
+button is disabled and says why — cash and bank transfers still work.
+
+**Getting told when a card is paid.** In Stripe → Developers → Webhooks, add an
+endpoint at `https://YOUR-DOMAIN/api/webhooks/stripe` listening for
+`checkout.session.completed`, `payment_intent.succeeded` and `charge.refunded`,
+then copy its signing secret into `STRIPE_WEBHOOK_SECRET`. Without this, a
+client's card payment will go through at Stripe but the invoice in CleanOS will
+still say unpaid.
+
+**Emailed invoices and reminders.** Fill in `RESEND_API_KEY` and
+`RESEND_FROM_EMAIL` (Section 3). Without them, sending an invoice tells you
+plainly that email is not set up and offers the WhatsApp link instead — it
+never silently does nothing.
+
+**The daily reminder run.** Invent a long random value for `CRON_SECRET` and put
+the same value in Vercel → Settings → Environment Variables. `vercel.json`
+already schedules the job for 04:00 UTC (08:00 Dubai) every day. On your own
+computer there is no cron, so press **Send reminders now** on the Invoices
+screen instead — it does exactly the same thing.
+
+---
+
 ## The commands you will actually use
 
 | Command | What it does |
@@ -175,6 +205,7 @@ password-reset emails will not work.
 | `npm run db:studio` | Open a spreadsheet-like view of your database |
 | `npm run test:rls` | Prove the security rules still work |
 | `npm run db:rls` | Re-apply the security rules (run after any new migration) |
+| `npm run test:e2e:invoices` | Drive invoicing and payments in a real browser |
 
 ---
 
@@ -207,3 +238,8 @@ The demo accounts only exist after a successful `npm run db:seed` that printed
 - [ ] Replace the demo company details (Sparkle Facilities Management, and its
       placeholder TRN) with your real ones.
 - [ ] Turn on Point-in-Time Recovery in Supabase so you can undo a bad day.
+- [ ] Swap the Stripe test keys for live keys, and re-point the webhook at your
+      live endpoint (the signing secret is different for live mode).
+- [ ] Set your real TRN and invoice prefix in the company settings before you
+      issue an invoice to a real customer — an issued invoice number cannot be
+      changed afterwards.

@@ -608,6 +608,192 @@
       }
     }
   },
+  "invoices": {
+    "title": "Invoices",
+    "subtitle": "Every VAT invoice, what has been paid, and what is still owed.",
+    "searchPlaceholder": "Search invoice number or client…",
+    "resultCount": "{count} invoices",
+    "empty": "No invoices match those filters.",
+    "pageOf": "Page {page} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "backToList": "All invoices",
+    "jobCount": "{count} jobs",
+    "daysOverdue": "{days} days overdue",
+    "issuedOn": "Issued {date}",
+    "dueOn": "due {date}",
+    "period": "Covering {from} to {to}",
+    "downloadPdf": "Download PDF",
+    "clientPaused": "{name} is paused from booking because of unpaid invoices. Recording a payment does not unpause them — do that on the client's page.",
+    "actions": "Actions",
+    "readOnly": "You can view this invoice, but only the owner can record payments or issue credit notes.",
+    "voided": "This invoice has been voided. Nothing further can be recorded against it.",
+    "settled": "Fully paid — nothing outstanding.",
+    "taxDetails": "Tax details",
+    "supplier": "Supplier",
+    "buyer": "Bill to",
+    "trn": "TRN",
+    "stats": {
+      "invoiced": "Invoiced",
+      "invoicedHint": "{count} invoices, excluding voided ones",
+      "collected": "Collected",
+      "collectedHint": "Payments recorded against invoices",
+      "outstanding": "Outstanding",
+      "outstandingHint": "Still owed to you",
+      "overdue": "Overdue invoices",
+      "overdueHint": "Past their due date and unpaid"
+    },
+    "aging": {
+      "title": "Aged receivables",
+      "hint": "How old the money owed to you is, counting from each due date.",
+      "buckets": {
+        "CURRENT": "Not yet due",
+        "DAYS_0_30": "1–30 days late",
+        "DAYS_31_60": "31–60 days late",
+        "DAYS_60_PLUS": "Over 60 days late"
+      }
+    },
+    "filters": {
+      "status": "Status",
+      "statusValues": {
+        "ALL": "All",
+        "UNPAID": "Unpaid",
+        "OVERDUE": "Overdue",
+        "PAID": "Paid",
+        "DRAFT": "Draft",
+        "VOID": "Void"
+      }
+    },
+    "table": {
+      "invoice": "Invoice",
+      "client": "Client",
+      "issued": "Issued",
+      "due": "Due",
+      "total": "Total",
+      "balance": "Balance",
+      "status": "Status"
+    },
+    "types": {
+      "STANDARD": "Standard",
+      "CONSOLIDATED": "Monthly",
+      "PACKAGE": "Package"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "ISSUED": "Issued",
+      "PARTIALLY_PAID": "Part paid",
+      "PAID": "Paid",
+      "OVERDUE": "Overdue",
+      "VOID": "Void"
+    },
+    "lines": {
+      "description": "Description",
+      "quantity": "Qty",
+      "unitPrice": "Unit price",
+      "vat": "VAT",
+      "total": "Line total",
+      "discount": "Less discount {amount}"
+    },
+    "totals": {
+      "subtotal": "Subtotal before VAT",
+      "discount": "Discount",
+      "vat": "VAT at {rate}%",
+      "total": "Total including VAT",
+      "paid": "Paid so far",
+      "credited": "Credited",
+      "balance": "Balance due"
+    },
+    "run": {
+      "monthly": "Run monthly billing",
+      "reminders": "Send reminders now",
+      "nothing": "Nothing to invoice — every completed job for monthly clients is already on an invoice.",
+      "done": "Raised {count} invoices for {clients} clients, {total} in total.",
+      "noReminders": "No reminders are due right now.",
+      "remindersSent": "Sent {sent} reminders.",
+      "remindersPartly": "Sent {sent}, but {failed} could not be sent.",
+      "paused": "{count} clients were paused from booking for non-payment."
+    },
+    "send": {
+      "send": "Send to client",
+      "resend": "Send again",
+      "emailed": "Invoice emailed to the client.",
+      "notEmailed": "The invoice was not emailed.",
+      "whatsappReady": "WhatsApp message ready to send.",
+      "openWhatsapp": "Open WhatsApp"
+    },
+    "record": {
+      "button": "Record a payment",
+      "title": "Record a payment",
+      "outstanding": "Outstanding on this invoice: {amount}",
+      "method": "How was it paid?",
+      "methods": {
+        "CASH": "Cash",
+        "BANK_TRANSFER": "Bank transfer",
+        "CHEQUE": "Cheque",
+        "CARD_STRIPE": "Card (Stripe)",
+        "PACKAGE": "Prepaid package",
+        "CREDIT_NOTE": "Account credit"
+      },
+      "amount": "Amount received (AED)",
+      "overpayWarning": "That is {extra} more than the balance. The extra becomes credit on the client's account.",
+      "reference": "Reference",
+      "referencePlaceholder": "Cheque number, transfer reference…",
+      "notes": "Notes",
+      "cancel": "Cancel",
+      "save": "Record payment",
+      "saved": "Payment {paymentNo} recorded.",
+      "openPayLink": "Open card payment page",
+      "createPayLink": "Create card payment link",
+      "linkCreated": "Card payment link created.",
+      "stripeOff": "Card payments are not set up. Add STRIPE_SECRET_KEY to .env."
+    },
+    "payments": {
+      "title": "Payments",
+      "none": "No payments recorded yet.",
+      "reconcile": "Mark reconciled",
+      "reconciled": "Payment marked reconciled.",
+      "reconciledOn": "Reconciled {date}",
+      "status": {
+        "PENDING": "Pending",
+        "SUCCEEDED": "Received",
+        "FAILED": "Failed",
+        "REFUNDED": "Refunded"
+      }
+    },
+    "reminders": {
+      "title": "Payment reminders",
+      "none": "No reminders scheduled for this invoice.",
+      "step": "Reminder {step}",
+      "status": {
+        "SCHEDULED": "Scheduled",
+        "SENT": "Sent",
+        "SKIPPED": "Not needed",
+        "FAILED": "Failed"
+      }
+    },
+    "credit": {
+      "button": "Issue a credit note",
+      "title": "Issue a credit note",
+      "body": "A tax invoice is never deleted. A credit note cancels part or all of it and leaves a trail an auditor can follow.",
+      "amount": "Credit amount including VAT (AED)",
+      "max": "You can credit up to {amount} against this invoice.",
+      "tooMuch": "That is more than is left to credit on this invoice.",
+      "reason": "Reason",
+      "reasonPlaceholder": "Why is this being credited?",
+      "refundToCard": "Also refund to the card",
+      "refundHint": "Sends the money back through Stripe to the card that paid.",
+      "cancel": "Cancel",
+      "issue": "Issue credit note",
+      "issued": "Credit note {creditNoteNo} issued.",
+      "listTitle": "Credit notes",
+      "refunded": "Refunded {amount} to the card.",
+      "applyButton": "Apply {amount} account credit",
+      "applied": "{amount} of account credit applied."
+    },
+    "jobs": {
+      "title": "Jobs on this invoice"
+    }
+  },
   "weekdayShort": {
     "sun": "Sun",
     "mon": "Mon",

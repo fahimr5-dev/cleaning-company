@@ -3,13 +3,15 @@
 Management platform for a residential and commercial cleaning company operating
 in the UAE.
 
-**Status: Phase 4 of 8 complete.** Working today: the public website with its
+**Status: Phase 5 of 8 complete.** Working today: the public website with its
 instant-quote calculator, the lead pipeline, client records with referral
 tracking, the weekly drag-and-drop schedule with its recurring-booking engine
-and conflict detection, and the cleaner's mobile view with GPS clock in/out,
-digital checklists, photos and on-site issue reporting. Screens from later
-phases show a clearly-labelled placeholder rather than anything that pretends
-to work.
+and conflict detection, the cleaner's mobile view with GPS clock in/out,
+digital checklists, photos and on-site issue reporting, and the money side —
+FTA-compliant VAT invoices, auto-invoicing on job completion, the month-end
+consolidated run, Stripe payment links alongside cash and bank transfers,
+credit notes, and automatic payment reminders. Screens from later phases show
+a clearly-labelled placeholder rather than anything that pretends to work.
 
 ## Getting started
 
@@ -31,7 +33,7 @@ npm run dev              # http://localhost:3000
 | 2 | Clients, leads, quote calculator, public site | **Done** |
 | 3 | Scheduling and the recurring job engine | **Done** |
 | 4 | Cleaner mobile view, checklists, photos | **Done** |
-| 5 | Invoicing, Stripe, dunning | Not started |
+| 5 | Invoicing, Stripe, dunning | **Done** |
 | 6 | Ratings, retention, referrals | Not started |
 | 7 | Staff/HR and inventory | Not started |
 | 8 | Reporting dashboard and polish | Not started |
@@ -80,6 +82,10 @@ Two independent locks: a role check in the app, and 187 Row Level Security
 policies inside the database. Run `npm run test:rls` to prove the second one
 works — 41 assertions across all four roles.
 
+Money is stricter still: an operations manager can *read* invoices but cannot
+record a payment, issue a credit note or run billing — refused by the app and,
+independently, by the database.
+
 Read **[docs/SECURITY.md](./docs/SECURITY.md)**, including the honest note on
 what this model does *not* yet cover.
 
@@ -99,3 +105,4 @@ what this model does *not* yet cover.
 | `npm run test:e2e` | Drive the real quote calculator in a browser |
 | `npm run test:e2e:schedule` | Drive the real schedule board in a browser |
 | `npm run test:e2e:field` | Drive the cleaner's mobile view at phone size |
+| `npm run test:e2e:invoices` | Drive invoicing, payments and credit notes in a browser |
