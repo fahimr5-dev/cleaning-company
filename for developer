@@ -1,0 +1,98 @@
+This is for Claude: You are a senior full-stack engineer. Build a production-grade Cleaning Company Management Platform ("CleanOS") for a residential + commercial cleaning business operating in the UAE (AED currency, VAT 5%, Friday–Saturday or Saturday–Sunday configurable weekends, Arabic + English UI support).
+
+I am a non-technical founder. Rules of engagement:
+- Explain every technical decision in one plain-English sentence before implementing it.
+- Give me all terminal commands and file contents in copy-paste format with exact file paths.
+- Build in phases. At the end of each phase, stop, tell me how to test it in the browser, and wait for my confirmation before continuing.
+- Never use placeholder/mock code that silently does nothing — if something is stubbed, label it TODO loudly.
+
+=== TECH STACK (do not deviate) ===
+- Next.js 14+ (App Router), TypeScript, Tailwind CSS, shadcn/ui components
+- Supabase (Postgres database, Auth, Storage, Row Level Security)
+- Prisma ORM for schema and migrations
+- Stripe for card payments; also support manual payment recording (cash/bank transfer — common in UAE)
+- Resend for transactional email; WhatsApp deep-links (wa.me) for client comms (WhatsApp is the primary channel in the Gulf)
+- Deployed on Vercel
+- Mobile-first responsive design (cleaners will use phones in the field; office uses desktop)
+
+=== USER ROLES ===
+1. Owner/Admin — everything
+2. Operations Manager — scheduling, staff, clients, complaints (no financial settings)
+3. Cleaner/Team Lead — mobile view only: today's jobs, checklists, photo upload, clock in/out
+4. Client — self-service portal: book, reschedule, pay, rate, view invoices
+Enforce role separation with Supabase Row Level Security (database-level rules so users can only ever see their own data, even if the app code has a bug).
+
+=== MODULE 1: CLIENT ACQUISITION (CRM + Lead Pipeline) ===
+- Public marketing site with instant-quote calculator: property type (apartment/villa/office), bedrooms/bathrooms or sqm, service type (regular, deep clean, move-in/out, post-construction, AC duct add-on, sofa/carpet shampoo), frequency (one-off, weekly, bi-weekly, monthly). Price = configurable rate card in admin settings, never hardcoded.
+- Lead capture form → lead lands in a Kanban pipeline: New → Contacted → Quoted → Won → Lost (with lost-reason dropdown for analysis).
+- Lead source tracking (Google, Instagram, referral, walk-in, repeat) — this feeds the CAC report later.
+- Auto-response: email + WhatsApp link with the quote PDF within 60 seconds of form submission.
+- Referral engine: every client gets a unique referral code; referrer and referee both get a configurable discount; track referral revenue.
+
+=== MODULE 2: BOOKING & SCHEDULING ===
+- Drag-and-drop weekly calendar showing teams as rows, jobs as blocks. Color by status: scheduled / en route / in progress / completed / cancelled / no-access.
+- Recurring job engine: create once, auto-generate future occurrences; skip/reschedule single occurrences without breaking the series.
+- Conflict detection: warn if a team is double-booked or travel time between consecutive jobs is unrealistic (simple zone-based buffer, e.g., Marina→Mirdif = 45 min).
+- Client self-service rescheduling with a configurable cutoff (e.g., 24h) and late-cancellation fee logic.
+- Capacity view: % utilization per team per day — this is the RevPAR of a cleaning company; surface it on the dashboard.
+
+=== MODULE 3: FIELD OPERATIONS (Cleaner Mobile View) ===
+- Today's job list: address (Google Maps deep link), gate/access notes, pets, chemical allergies, key-holding status.
+- Clock in / clock out with GPS timestamp (geofence check within 200m of job address; flag mismatches for manager review, don't block).
+- Digital checklist per service type (admin-editable templates). Job can't be marked complete until mandatory items are checked.
+- Before/after photo upload (compressed client-side, stored in Supabase Storage, attached to job record and visible in client portal).
+- Issue reporting: damage found, no access, client complaint on site — creates a ticket for the Ops Manager instantly.
+
+=== MODULE 4: STAFF & HR ===
+- Employee profiles: visa expiry, Emirates ID expiry, medical fitness expiry — automated email alerts to admin at 60/30/7 days (visa lapses are an existential compliance risk in the UAE).
+- Attendance from clock-in data; monthly timesheet export (CSV) for WPS payroll (Wage Protection System — the UAE's mandatory salary-transfer scheme; we export data, we do not process payroll in-app).
+- Performance scorecard per cleaner: jobs completed, average client rating, complaint count, punctuality %.
+- Leave requests with approval workflow and calendar integration (blocked-out cleaner auto-removes capacity).
+
+=== MODULE 5: BILLING & PAYMENTS ===
+- Auto-invoice on job completion (or monthly consolidated invoice for recurring commercial clients — client-level setting).
+- VAT-compliant invoice format: TRN (Tax Registration Number) fields, 5% VAT line, sequential invoice numbering, PDF generation, FTA-compliant layout.
+- Payment methods: Stripe card link embedded in invoice email/WhatsApp, plus manual recording of cash/transfer with reconciliation status (unpaid / partial / paid / overdue).
+- Dunning sequence: automated reminders at due date, +3 days, +7 days (email + WhatsApp link); overdue clients flagged on their profile and optionally auto-paused from booking.
+- Credit notes and refunds with audit trail.
+- Package/wallet system: client prepays for e.g. 10 sessions at a discount; sessions decrement automatically per completed job.
+
+=== MODULE 6: RETENTION & QUALITY ===
+- Post-job rating request (1–5 stars + comment) via email/WhatsApp link, 2 hours after completion.
+- Rating < 4 triggers a complaint ticket + free re-clean offer workflow requiring manager sign-off.
+- Rating = 5 triggers a Google Review request link.
+- Churn-risk flags: recurring client who skipped 2+ cycles, rating trend declining, payment friction — surfaced as a "Clients at Risk" list with suggested action.
+- NPS survey quarterly, automated.
+- Win-back campaign: clients inactive 60+ days get a templated WhatsApp/email offer (manager approves the batch before send).
+
+=== MODULE 7: INVENTORY & ASSETS ===
+- Consumables tracking (chemicals, cloths, bags): stock in/out, low-stock alerts, cost-per-job allocation.
+- Equipment register (vacuums, machines) with assignment-to-team and maintenance-due dates.
+
+=== MODULE 8: REPORTING DASHBOARD (Owner view) ===
+- Revenue: daily/weekly/monthly, by service type, by area, recurring vs one-off mix.
+- Utilization % per team (capacity sold ÷ capacity available).
+- CAC by lead source (marketing spend field per source per month ÷ clients won).
+- Client LTV, retention/churn rate, referral revenue %.
+- Aged receivables (0-30/31-60/60+).
+- Cleaner league table.
+All reports exportable to CSV/Excel.
+
+=== NON-FUNCTIONAL REQUIREMENTS ===
+- English + Arabic UI (i18n from day one, RTL support).
+- All money stored as integers in fils (smallest unit) to avoid floating-point errors.
+- Every destructive action soft-deletes with audit log (who, what, when).
+- Seed script with realistic demo data (20 clients, 4 teams, 200 jobs) so I can evaluate every screen immediately.
+- Environment variables documented in a .env.example file with plain-English comments explaining where I get each key.
+
+=== BUILD ORDER ===
+Phase 1: Auth, roles, database schema, seed data, admin shell
+Phase 2: Clients + leads + quote calculator
+Phase 3: Scheduling + recurring engine
+Phase 4: Cleaner mobile view + checklists + photos
+Phase 5: Invoicing + Stripe + dunning
+Phase 6: Ratings, retention, referrals
+Phase 7: Staff/HR + inventory
+Phase 8: Reporting dashboard + polish
+
+Start with Phase 1. Before writing any code, show me the full Prisma database schema with a one-line plain-English explanation of each table, and wait for my approval.
