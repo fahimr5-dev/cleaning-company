@@ -29,8 +29,8 @@ export const NAV_SECTIONS: NavSection[] = [
     key: "operate",
     items: [
       { href: "/dashboard", key: "dashboard", icon: LayoutDashboard, roles: OFFICE },
-      { href: "/schedule", key: "schedule", icon: CalendarDays, roles: OFFICE, phase: 3 },
-      { href: "/jobs", key: "jobs", icon: ClipboardList, roles: OFFICE, phase: 3 },
+      { href: "/schedule", key: "schedule", icon: CalendarDays, roles: OFFICE },
+      { href: "/jobs", key: "jobs", icon: ClipboardList, roles: OFFICE },
     ],
   },
   {

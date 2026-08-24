@@ -19,7 +19,8 @@
     "test:rls": "node scripts/db-sql.mjs scripts/test-rls.sql --report",
     "db:setup": "prisma migrate deploy && npm run db:rls && npm run db:seed",
     "test": "tsx --test tests/*.test.ts",
-    "test:e2e": "node tests/e2e/quote-calculator.mjs"
+    "test:e2e": "node tests/e2e/quote-calculator.mjs",
+    "test:e2e:schedule": "node tests/e2e/schedule.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -729,7 +729,13 @@ async function main() {
   // How many minutes of work each team already has on each day. The key is
   // "teamId|2026-08-24". This is what stops a team being booked for 20 hours.
   const bookedMinutes = new Map<string, number>();
+  // The zone each team finishes in, so the next job allows for the drive.
+  const lastZone = new Map<string, string>();
   const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+
+  const travelLookup = new Map(travelRows.map((t) => [`${t.fromZoneId}|${t.toZoneId}`, t.minutes]));
+  const driveMinutes = (from: string | undefined, to: string) =>
+    from ? (travelLookup.get(`${from}|${to}`) ?? 30) : 0;
 
   /**
    * Finds a team with room for a job of this length, starting from the day we
@@ -737,7 +743,7 @@ async function main() {
    * spill to the next day when every team is full — exactly how a real
    * dispatcher fills a week.
    */
-  function placeJob(preferred: Date, minutes: number) {
+  function placeJob(preferred: Date, minutes: number, zoneId: string) {
     for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
       const date = new Date(preferred);
       date.setDate(date.getDate() + dayOffset);
@@ -753,14 +759,18 @@ async function main() {
       for (const team of candidates) {
         const key = `${team.id}|${dayKey(date)}`;
         const used = bookedMinutes.get(key) ?? 0;
+        // Leave enough of a gap to actually drive there from the last job.
+        // Without this every consecutive pair looks like a travel-time problem.
+        const drive = driveMinutes(lastZone.get(key), zoneId);
         // A job longer than a whole working day (a post-construction villa, for
         // example) can never "fit" — so give it a team that is otherwise free
         // and let it take the whole day.
-        const fits = used + minutes <= team.capacityMinutesPerDay;
+        const fits = used + drive + minutes <= team.capacityMinutesPerDay;
         if (!fits && used > 0) continue;
 
-        bookedMinutes.set(key, used + minutes);
-        return { team, date, start: addMinutes(at(date, team.shiftStart), used) };
+        bookedMinutes.set(key, used + drive + minutes);
+        lastZone.set(key, zoneId);
+        return { team, date, start: addMinutes(at(date, team.shiftStart), used + drive) };
       }
     }
 
@@ -770,8 +780,10 @@ async function main() {
     const date = isWeekend(preferred) ? day(1) : preferred;
     const key = `${team.id}|${dayKey(date)}`;
     const used = bookedMinutes.get(key) ?? 0;
-    bookedMinutes.set(key, used + minutes);
-    return { team, date, start: addMinutes(at(date, team.shiftStart), used) };
+    const drive = driveMinutes(lastZone.get(key), zoneId);
+    bookedMinutes.set(key, used + drive + minutes);
+    lastZone.set(key, zoneId);
+    return { team, date, start: addMinutes(at(date, team.shiftStart), used + drive) };
   }
 
   // Decide WHEN the 200 jobs happen before creating any of them, so the spread
@@ -806,7 +818,17 @@ async function main() {
     const isRecurring = seriesByClient.has(client.id) && chance(0.6);
     const serviceCode = isRecurring
       ? "REGULAR"
-      : pick(["REGULAR", "REGULAR", "DEEP", "MOVE_IN_OUT", "AC_DUCT", "SOFA_CARPET", "POST_CONSTRUCTION"] as const);
+      // Weighted to match a real cleaning company's mix: regular cleans are the
+      // bread and butter, post-construction is rare. An even split would fill
+      // the diary with all-day jobs nobody actually books that often.
+      : pick([
+          "REGULAR", "REGULAR", "REGULAR", "REGULAR", "REGULAR", "REGULAR", "REGULAR", "REGULAR",
+          "DEEP", "DEEP", "DEEP",
+          "MOVE_IN_OUT", "MOVE_IN_OUT",
+          "AC_DUCT", "AC_DUCT",
+          "SOFA_CARPET", "SOFA_CARPET",
+          "POST_CONSTRUCTION",
+        ] as const);
     const rule = rules.get(`${serviceCode}|${client.propertyType}`)!;
     const units = serviceCode === "AC_DUCT" ? int(4, 14) : serviceCode === "SOFA_CARPET" ? int(3, 8) : 0;
     const priced = priceService(rule, {
@@ -819,7 +841,7 @@ async function main() {
     // Fit the job into a team's actual working day instead of dropping it on a
     // random team at a random time. Without this, four teams end up "253%
     // utilised" and the capacity figure means nothing.
-    const placement = placeJob(date, priced.minutes);
+    const placement = placeJob(date, priced.minutes, client.zoneId);
     const team = placement.team;
     const start = placement.start;
     const end = addMinutes(start, priced.minutes);

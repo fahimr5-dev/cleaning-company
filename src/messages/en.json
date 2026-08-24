@@ -393,5 +393,147 @@
       "notesPlaceholder": "Prefers morning slots. Always tips the team.",
       "notesSaved": "Notes saved"
     }
+  },
+  "schedule": {
+    "title": "Schedule",
+    "subtitle": "Teams down the side, days across the top.",
+    "dragHint": "Drag a job onto another team or day. A move that would put a team in two places at once is refused; anything merely tight asks you first.",
+    "team": "Team",
+    "today": "Today",
+    "members": "{count} people",
+    "recurring": "Repeating",
+    "onLeave": "On leave",
+    "dayOff": "Day off",
+    "unassigned": "Not assigned to a team ({count})",
+    "moved": "Job moved",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "thisWeek": "This week",
+    "generate": "Fill the diary",
+    "generateDone": "Created {count} visits from your repeating bookings",
+    "generateNothing": "Nothing to create — the diary is already filled in",
+    "generateSkipped": "{count} were skipped because the team was already booked",
+    "stats": {
+      "jobs": "Jobs this week",
+      "jobsHint": "Excluding cancelled",
+      "utilisation": "Utilisation",
+      "utilisationHint": "{booked} of {capacity} hours sold",
+      "revenue": "Booked revenue",
+      "revenueHint": "Including VAT",
+      "conflicts": "Jobs with problems",
+      "conflictsHint": "Clashes or unrealistic travel"
+    },
+    "legend": {
+      "SCHEDULED": "Scheduled",
+      "EN_ROUTE": "En route",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "NO_ACCESS": "No access"
+    },
+    "conflict": {
+      "title": "Are you sure about this move?",
+      "body": "It is possible, but it looks difficult. You may know something the schedule does not.",
+      "blocking": "Clash",
+      "warning": "Tight",
+      "doubleBooked": "This team is already on job {jobNo} at that time.",
+      "travelTime": "Only {gap} minutes between {from} and {to}, but the drive alone takes {drive} minutes ({needed} needed with the buffer).",
+      "overCapacity": "That day would be {booked} minutes against a capacity of {capacity} — over by {over}.",
+      "outsideShift": "This falls outside the team's shift of {start} to {end}.",
+      "nonWorkingDay": "This team does not normally work on {weekday}.",
+      "teamOnLeave": "The whole team is on approved leave that day.",
+      "cancel": "Leave it where it was",
+      "confirm": "Move it anyway"
+    },
+    "detail": {
+      "jobNo": "Job no.",
+      "when": "When",
+      "duration": "Duration",
+      "minutes": "{count} minutes",
+      "service": "Service",
+      "area": "Area",
+      "cleaners": "Cleaners",
+      "price": "Price",
+      "recurring": "Repeating",
+      "viewClient": "Open the client",
+      "hasConflicts": "This job has {count} scheduling problem(s).",
+      "skipThisVisit": "Skip just this visit",
+      "skipped": "Visit skipped — the series carries on",
+      "cancelReason": "Reason",
+      "cancelReasonPlaceholder": "Client is travelling",
+      "cancelThis": "Cancel this visit",
+      "cancelled": "Job cancelled",
+      "endSeries": "End the whole series",
+      "seriesEnded": "Series ended",
+      "lateWithFee": "Only {hours} hours' notice — a late-cancellation fee of {fee} applies.",
+      "lateNoFee": "Only {hours} hours' notice. Recorded as late, but you charge no fee."
+    }
+  },
+  "jobs": {
+    "title": "Jobs",
+    "subtitle": "Every visit, past and upcoming, with its team and price.",
+    "searchPlaceholder": "Search job number, client or phone…",
+    "resultCount": "{count} jobs",
+    "empty": "No jobs match those filters.",
+    "unassigned": "Unassigned",
+    "recurring": "Part of a repeating booking",
+    "lateFee": "Late fee {fee}",
+    "pageOf": "Page {page} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "filters": {
+      "when": "When",
+      "status": "Status",
+      "team": "Team",
+      "all": "All",
+      "whenValues": {
+        "UPCOMING": "Upcoming",
+        "PAST": "Past",
+        "ALL": "All"
+      }
+    },
+    "table": {
+      "job": "Job",
+      "client": "Client",
+      "service": "Service",
+      "team": "Team",
+      "when": "When",
+      "price": "Price",
+      "status": "Status"
+    },
+    "stats": {
+      "upcoming": "Upcoming jobs",
+      "upcomingHint": "Scheduled or on the way",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "thisMonth": "This month",
+      "revenue": "Revenue completed",
+      "revenueHint": "This month, including VAT"
+    },
+    "series": {
+      "title": "Repeating bookings ({count})",
+      "explain": "Pausing one stops NEW visits being created. Visits already in the diary stay exactly as they are.",
+      "none": "No repeating bookings yet.",
+      "upcoming": "{count} upcoming",
+      "clientPaused": "This client is paused from booking, so no visits will be created.",
+      "pause": "Pause",
+      "resume": "Resume",
+      "paused": "Repeating booking paused",
+      "resumed": "Repeating booking resumed",
+      "status": {
+        "ACTIVE": "Active",
+        "PAUSED": "Paused",
+        "ENDED": "Ended"
+      }
+    }
+  },
+  "weekdayShort": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
   }
 }
