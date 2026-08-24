@@ -10,6 +10,10 @@
 -- ============================================================================
 SET client_min_messages TO WARNING;
 
+-- CleanOS's tables live in the `cleanos` schema, so unqualified table names
+-- below resolve there. pg_temp stays on the path for the helpers created here.
+SET search_path = cleanos, pg_temp, public;
+
 CREATE TEMP TABLE results(check_name text, expected text, actual text, ok boolean);
 
 CREATE OR REPLACE FUNCTION pg_temp.check_count(p_name text, p_sql text, p_expected bigint)
@@ -134,10 +138,10 @@ SELECT pg_temp.check_count('cleaner CANNOT see payments',     'SELECT count(*) F
 SELECT pg_temp.check_count('cleaner CANNOT see leads',        'SELECT count(*) FROM leads',    0);
 SELECT pg_temp.check_count('cleaner CANNOT see ad spend',     'SELECT count(*) FROM marketing_spend', 0);
 SELECT pg_temp.check_count('cleaner sees own timesheet only',
-  'SELECT count(*) FROM time_entries WHERE "staffId" <> public.current_staff_id()', 0);
+  'SELECT count(*) FROM time_entries WHERE "staffId" <> cleanos.current_staff_id()', 0);
 SELECT pg_temp.check_denied('cleaner CANNOT delete a job', 'DELETE FROM jobs');
 SELECT pg_temp.check_denied('cleaner CANNOT give themselves a raise',
-  'UPDATE staff SET "basicSalaryFils" = 99999999 WHERE id = public.current_staff_id()');
+  'UPDATE staff SET "basicSalaryFils" = 99999999 WHERE id = cleanos.current_staff_id()');
 RESET ROLE;
 
 -- ===========================================================================
@@ -151,13 +155,13 @@ SELECT pg_temp.check_count('client sees ONLY own jobs',     'SELECT count(*) FRO
 SELECT pg_temp.check_count('client sees ONLY own invoices', 'SELECT count(*) FROM invoices', (SELECT client_invoices FROM truth));
 SELECT pg_temp.check_count('client CANNOT see staff',       'SELECT count(*) FROM staff',    0);
 SELECT pg_temp.check_count('client CANNOT see leads',       'SELECT count(*) FROM leads',    0);
-SELECT pg_temp.check_count('client CANNOT see other tickets','SELECT count(*) FROM tickets WHERE "clientId" <> public.current_client_id()', 0);
+SELECT pg_temp.check_count('client CANNOT see other tickets','SELECT count(*) FROM tickets WHERE "clientId" <> cleanos.current_client_id()', 0);
 SELECT pg_temp.check_count('client CANNOT see internal notes','SELECT count(*) FROM ticket_comments WHERE "isInternal"', 0);
 SELECT pg_temp.check_count('client CANNOT see timesheets',  'SELECT count(*) FROM time_entries', 0);
 SELECT pg_temp.check_count('client CAN read the live rate card', 'SELECT count(*) FROM rate_card_items', 18);
 SELECT pg_temp.check_denied('client CANNOT edit an invoice', 'UPDATE invoices SET "amountPaidFils" = "totalFils"');
 SELECT pg_temp.check_denied('client CANNOT read another client by id',
-  'UPDATE clients SET "creditBalanceFils" = 100000 WHERE id <> public.current_client_id()');
+  'UPDATE clients SET "creditBalanceFils" = 100000 WHERE id <> cleanos.current_client_id()');
 RESET ROLE;
 
 -- ===========================================================================

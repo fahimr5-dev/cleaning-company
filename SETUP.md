@@ -205,6 +205,8 @@ screen instead — it does exactly the same thing.
 | `npm run db:studio` | Open a spreadsheet-like view of your database |
 | `npm run test:rls` | Prove the security rules still work |
 | `npm run db:rls` | Re-apply the security rules (run after any new migration) |
+| `npm run db:roles` | Create the security roles and the `cleanos` folder (safe to repeat) |
+| `npm run db:migrate:http` | Apply migrations when your network blocks the database port |
 | `npm run test:e2e:invoices` | Drive invoicing and payments in a real browser |
 
 ---

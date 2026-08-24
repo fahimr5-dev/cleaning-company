@@ -14,9 +14,10 @@
  * see tomorrow.
  */
 
+import { randomBytes } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import type { Frequency, JobStatus, Team, Zone } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { makeAdapter } from "../src/lib/db-driver";
 import { priceService, totalsFor, type RateCardRule } from "../src/lib/pricing";
 import { aed, vatOn } from "../src/lib/money";
 
@@ -31,7 +32,7 @@ if (!connectionString) {
   throw new Error("DATABASE_URL (or DIRECT_URL) is not set. Copy .env.example to .env first.");
 }
 
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+const prisma = new PrismaClient({ adapter: makeAdapter(connectionString) });
 
 // ---------------------------------------------------------------------------
 // Reproducible randomness. A fixed starting number means "random" choices come
@@ -48,6 +49,13 @@ function rnd(): number {
 const pick = <T,>(arr: readonly T[]): T => arr[Math.floor(rnd() * arr.length)];
 const int = (min: number, max: number) => min + Math.floor(rnd() * (max - min + 1));
 const chance = (p: number) => rnd() < p;
+
+/**
+ * A 128-bit secret, the same shape the app issues for rating and survey links.
+ * Deliberately real randomness, not the seeded generator: a demo link that
+ * anyone could guess from the seed would be a bad habit to ship.
+ */
+const hexToken = () => randomBytes(16).toString("hex");
 
 // ---------------------------------------------------------------------------
 // Dates. "Today" is the day you run the seed, so the calendar always has jobs
@@ -1272,8 +1280,26 @@ async function main() {
   // 13. Ratings, and the complaint tickets that low ratings create
   // -------------------------------------------------------------------------
   console.log("Adding ratings and tickets…");
+  const awaitingRatingLinks: string[] = [];
   for (const j of completedJobs) {
     if (!chance(0.78)) continue;
+
+    // Roughly one in eight has been asked but has not answered yet — that is
+    // realistic, and it leaves live links to try the rating page with.
+    if (chance(0.12)) {
+      const pending = await prisma.rating.create({
+        data: {
+          jobId: j.id,
+          clientId: j.clientId,
+          stars: 0, // 0 means "not rated yet"; submittedAt is what says they answered
+          token: hexToken(),
+          requestSentAt: addMinutes(j.end, org.ratingRequestDelayMinutes),
+        },
+      });
+      if (awaitingRatingLinks.length < 3) awaitingRatingLinks.push(pending.token);
+      continue;
+    }
+
     // Mostly happy, with a realistic tail of unhappy jobs.
     const stars = chance(0.62) ? 5 : chance(0.65) ? 4 : chance(0.6) ? 3 : chance(0.5) ? 2 : 1;
     const rating = await prisma.rating.create({
@@ -1286,7 +1312,7 @@ async function main() {
         comment: stars >= 4
           ? pick(["Spotless as always, thank you.", "Great job, very thorough.", "The team was polite and quick.", null])
           : pick(["Bathroom was not properly done.", "Team arrived late and rushed.", "Missed under the beds entirely."]),
-        token: `rt_${j.id.slice(0, 8)}${int(100000, 999999)}`,
+        token: hexToken(),
         requestSentAt: addMinutes(j.end, org.ratingRequestDelayMinutes),
         submittedAt: addMinutes(j.end, org.ratingRequestDelayMinutes + int(30, 3000)),
         googleReviewShownAt: stars === 5 ? addMinutes(j.end, org.ratingRequestDelayMinutes + 60) : null,
@@ -1446,6 +1472,14 @@ async function main() {
         subjectEn: "We miss you — 20% off your next clean", subjectAr: "اشتقنا إليك — خصم ٢٠٪",
         bodyEn: "Hi {{name}}, it has been a while. Here is 20% off your next booking: {{offerLink}}",
         bodyAr: "مرحباً {{name}}، لم نرك منذ فترة. خصم ٢٠٪ على حجزك القادم: {{offerLink}}" },
+      { code: "NPS_SURVEY", description: "Quarterly 'would you recommend us' survey", channel: "BOTH",
+        subjectEn: "One quick question, {{name}}", subjectAr: "سؤال واحد سريع، {{name}}",
+        bodyEn: "Hi {{name}}, how likely are you to recommend us to a friend, from 0 to 10? One tap: {{surveyLink}}",
+        bodyAr: "مرحباً {{name}}، ما مدى احتمال أن توصي بنا لصديق من ٠ إلى ١٠؟ بضغطة واحدة: {{surveyLink}}" },
+      { code: "REFERRAL_PUSH", description: "Reminder to happy clients that referrals earn credit", channel: "BOTH",
+        subjectEn: "Know someone who needs a clean?", subjectAr: "تعرف شخصاً يحتاج إلى تنظيف؟",
+        bodyEn: "Hi {{name}}, share your code {{referralCode}} and you both get credit off your next clean: {{referralLink}}",
+        bodyAr: "مرحباً {{name}}، شارك رمزك {{referralCode}} ويحصل كلاكما على رصيد على التنظيف القادم: {{referralLink}}" },
       { code: "VISA_EXPIRY_ALERT", description: "Internal alert to the admin at 60/30/7 days", channel: "EMAIL",
         subjectEn: "Action needed: {{documentType}} expires in {{days}} days", subjectAr: "مطلوب إجراء: {{documentType}}",
         bodyEn: "{{staffName}}'s {{documentType}} expires on {{expiryDate}} ({{days}} days). Start renewal now.",

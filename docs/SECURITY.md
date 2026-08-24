@@ -112,6 +112,32 @@ this page".
 - **The daily reminder job refuses to run without `CRON_SECRET`**, so nobody can
   trigger your customer emails by visiting a URL.
 
+## Where the tables live (changed in Phase 6)
+
+All 57 CleanOS tables sit in a schema — a named folder inside the database —
+called **`cleanos`**, not the default `public`.
+
+That is so Anqa RMS, the PMS and DINE OS can share one database and one login
+without colliding: 25 of CleanOS's table names (`users`, `clients`, `invoices`,
+`payments`, `jobs`, `staff`, `teams`, `tickets`, `organizations` and more) are
+names every one of those apps also wants.
+
+What this means in practice:
+
+- Every connection string ends `&schema=cleanos`. The app reads it and tells the
+  driver; you never set a search path by hand.
+- All 187 policies and the helper functions (`app_role()`, `is_owner()`,
+  `current_staff_id()` …) live in `cleanos` too, not `public`.
+- `withUserRls()` sets `search_path` explicitly after dropping to the restricted
+  role, because dropping privileges can reset it.
+- `prisma/sql/00_roles.sql` creates the schema, the three Supabase roles and
+  `auth.uid()` if they are missing. On Supabase all of that already exists and
+  the script leaves it alone; on Neon or a plain Postgres it is what makes the
+  rules loadable at all.
+
+Verified by dropping the `public` schema entirely and re-running the suite:
+41/41 still pass, which proves nothing is quietly reading `public`.
+
 ## After every future migration
 
 A new table created by a migration starts with **no rules on it at all**. Always

@@ -42,6 +42,10 @@ export async function withUserRls<T>(
         JSON.stringify({ sub: userId, role: "authenticated" }),
       );
       await tx.$executeRawUnsafe("SET LOCAL ROLE authenticated");
+      // CleanOS's tables live in the `cleanos` schema. Dropping to the
+      // restricted role can reset the search path, so it is set explicitly
+      // here — otherwise every query inside would fail to find its table.
+      await tx.$executeRawUnsafe("SET LOCAL search_path = cleanos, public");
       return work(tx);
     },
     { timeout: options.timeoutMs ?? 15_000 },

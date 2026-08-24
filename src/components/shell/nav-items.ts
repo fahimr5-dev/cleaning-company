@@ -1,7 +1,7 @@
 import type { AppRole } from "@/lib/auth";
 import {
   LayoutDashboard, UserPlus, Users, CalendarDays, ClipboardList,
-  ReceiptText, IdCard, Package, BarChart3, Settings,
+  ReceiptText, IdCard, Package, BarChart3, Settings, HeartHandshake,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,6 +38,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/leads", key: "leads", icon: UserPlus, roles: OFFICE },
       { href: "/clients", key: "clients", icon: Users, roles: OFFICE },
+      { href: "/retention", key: "retention", icon: HeartHandshake, roles: OFFICE },
     ],
   },
   {

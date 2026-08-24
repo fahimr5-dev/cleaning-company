@@ -10,6 +10,8 @@ import { nextDocumentNumber } from "@/lib/document-number";
 import { checkGeofence, canCompleteJob, minutesWorked } from "@/lib/field-ops";
 import { uploadJobPhoto, isStorageConfigured } from "@/lib/storage";
 import { billCompletedJob } from "@/lib/invoicing";
+import { prepareRatingRequest } from "@/lib/ratings";
+import { qualifyReferralForJob } from "@/lib/referrals";
 import { ISSUE_TYPES } from "@/lib/field-shared";
 
 /**
@@ -332,6 +334,30 @@ export async function completeJobAction(raw: unknown): Promise<Result<{ warning?
         `\n!! BILLING FAILED for completed job ${result.jobNo}. The job IS saved as` +
           " complete; it simply has no invoice yet. Raise one by hand from the" +
           " Invoices screen.\n",
+        error,
+      );
+    }
+
+    // Prepare the "how did we do?" request. It is not sent yet — the message
+    // goes out once the delay in your settings has passed.
+    try {
+      await prepareRatingRequest(jobId);
+    } catch (error) {
+      console.error(
+        `\n!! Could not prepare the rating request for ${result.jobNo}. The job IS` +
+          " saved as complete; it simply will not be rated.\n",
+        error,
+      );
+    }
+
+    // If this client arrived through somebody's referral code, a completed and
+    // paid first job is what earns both of them their reward.
+    try {
+      await qualifyReferralForJob(jobId);
+    } catch (error) {
+      console.error(
+        `\n!! Could not check the referral on ${result.jobNo}. The job IS saved as` +
+          " complete; a reward may need issuing by hand from the Retention screen.\n",
         error,
       );
     }

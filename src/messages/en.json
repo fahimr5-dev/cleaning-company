@@ -26,6 +26,7 @@
     "dashboard": "Dashboard",
     "leads": "Leads",
     "clients": "Clients",
+    "retention": "Retention",
     "schedule": "Schedule",
     "jobs": "Jobs",
     "invoices": "Invoices",
@@ -793,6 +794,154 @@
     "jobs": {
       "title": "Jobs on this invoice"
     }
+  },
+  "retention": {
+    "title": "Retention",
+    "subtitle": "Who is drifting away, what clients think of the work, and who is bringing you new business.",
+    "stats": {
+      "averageStars": "Average rating",
+      "averageStarsHint": "{count} ratings in the last 90 days",
+      "nps": "NPS, {quarter}",
+      "npsDelta": "{delta} against {quarter}",
+      "npsNoCompare": "{count} answers so far",
+      "atRisk": "Clients at risk",
+      "atRiskHint": "Showing warning signs right now",
+      "referralRevenue": "Referral revenue",
+      "referralRevenueHint": "Across {count} referrals"
+    },
+    "risk": {
+      "title": "Clients at risk",
+      "hint": "Worst first. Nobody phones up to say they are leaving.",
+      "empty": "Nobody is showing warning signs. Press Rebuild to check again.",
+      "rebuild": "Rebuild the list",
+      "rebuilt": "Checked {checked} clients: {opened} new warnings, {closed} cleared.",
+      "score": "Risk {score}",
+      "lifetime": "worth {amount} so far",
+      "resolve": "Handle",
+      "resolveTitle": "Close this warning",
+      "resolveBody": "Say what you did, so the next person looking at this client can see it.",
+      "note": "What did you do?",
+      "notePlaceholder": "Called them, moved the clean to Thursdays…",
+      "dismiss": "Not a problem",
+      "dismissed": "Warning dismissed.",
+      "actioned": "Dealt with",
+      "marked": "Warning closed.",
+      "reasons": {
+        "SKIPPED_CYCLES": "Skipping their cleans",
+        "RATING_DECLINE": "Ratings are falling",
+        "PAYMENT_FRICTION": "Not paying",
+        "INACTIVITY": "Gone quiet",
+        "COMPLAINT_HISTORY": "Complaining repeatedly"
+      }
+    },
+    "ratings": {
+      "title": "Recent ratings",
+      "hint": "{low} below {threshold} stars in 90 days · {awaiting} still waiting for a reply",
+      "empty": "No ratings submitted yet.",
+      "stars": "{stars} out of 5",
+      "google": "Google review offered {shown} times, clicked {clicked} times."
+    },
+    "nps": {
+      "title": "Would they recommend you? ({quarter})",
+      "empty": "No answers this quarter yet — {outstanding} surveys are out.",
+      "promoters": "Promoters",
+      "passives": "Passives",
+      "detractors": "Detractors",
+      "outstanding": "{count} surveys sent but not yet answered."
+    },
+    "campaigns": {
+      "title": "Campaigns",
+      "empty": "No campaigns yet.",
+      "build": "New win-back",
+      "buildTitle": "Win-back campaign",
+      "buildBody": "These clients have gone quiet. Untick anyone you would rather not message. Nothing is sent until you approve the draft.",
+      "working": "Working out who has gone quiet…",
+      "nobody": "Nobody is due a win-back offer right now.",
+      "chosen": "{count} of {total} selected",
+      "quietFor": "quiet {days}d",
+      "createDraft": "Create draft",
+      "drafted": "Draft created for {count} clients. Nothing has been sent yet.",
+      "cancel": "Cancel",
+      "cancelled": "Campaign cancelled.",
+      "ownerOnly": "Only the owner can create a campaign.",
+      "defaultName": "Win-back offer ({count} clients)",
+      "approve": "Approve and send",
+      "approveTitle": "Send this campaign?",
+      "approveBody": "This sends a message to {count} clients right now. It cannot be taken back.",
+      "sendNow": "Yes, send it",
+      "sent": "Sent to {sent} clients.",
+      "partlySent": "Sent to {sent}; {failed} could not be reached.",
+      "recipients": "{count} clients",
+      "converted": "{count} booked again",
+      "types": {
+        "WINBACK": "Win-back",
+        "NPS": "Survey",
+        "PROMO": "Promotion",
+        "REFERRAL_PUSH": "Referral nudge"
+      },
+      "status": {
+        "DRAFT": "Draft",
+        "PENDING_APPROVAL": "Awaiting approval",
+        "APPROVED": "Approved",
+        "SENDING": "Sending",
+        "SENT": "Sent",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "referrals": {
+      "title": "Referrals",
+      "hint": "{rewarded} rewarded · {pending} waiting to qualify · {paid} paid out",
+      "empty": "No referrals yet.",
+      "brought": "brought in {name}",
+      "codeOnly": "code {code}, not used yet",
+      "status": {
+        "PENDING": "Waiting",
+        "QUALIFIED": "Qualified",
+        "REWARDED": "Rewarded",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "run": {
+      "button": "Send what is due",
+      "nothing": "Nothing is due right now.",
+      "done": "Sent {ratings} rating requests and {surveys} surveys; rewarded {referrals} referrals."
+    }
+  },
+  "rate": {
+    "title": "Rate your clean",
+    "greeting": "Hi {name}, how did we do?",
+    "about": "{service}, {date}",
+    "overall": "Overall, how was it?",
+    "punctuality": "Did the team arrive on time?",
+    "quality": "How was the cleaning itself?",
+    "comment": "Anything you would like to add? (optional)",
+    "commentLow": "What went wrong? This goes straight to the manager.",
+    "commentPlaceholder": "Tell us as much or as little as you like…",
+    "lowWarning": "A manager will read this and be in touch. We would rather fix it than lose you.",
+    "chooseStars": "Choose a rating",
+    "submit": "Send my rating",
+    "thanksTitle": "Thank you",
+    "thanksHigh": "We are glad it went well. See you next time.",
+    "thanksLow": "We are sorry. A manager has been notified and will be in touch shortly.",
+    "googlePrompt": "Would you share that on Google? It genuinely helps a small business.",
+    "googleButton": "Leave a Google review",
+    "alreadyTitle": "Already rated",
+    "alreadyBody": "You gave this clean {stars} stars. Thank you — job {jobNo}."
+  },
+  "nps": {
+    "title": "One quick question",
+    "greeting": "Hi {name}",
+    "question": "How likely are you to recommend us to a friend or colleague?",
+    "scaleLow": "0 — not at all likely",
+    "scaleHigh": "10 — extremely likely",
+    "commentPromoter": "Thank you! What do we do best? (optional)",
+    "commentPassive": "What would make it a 10? (optional)",
+    "commentDetractor": "What went wrong? (optional)",
+    "submit": "Send",
+    "thanksTitle": "Thank you",
+    "thanksBody": "That takes ten seconds and it genuinely shapes what we fix next.",
+    "alreadyTitle": "Already answered",
+    "alreadyBody": "You scored us {score} out of 10 this quarter. Thank you."
   },
   "weekdayShort": {
     "sun": "Sun",

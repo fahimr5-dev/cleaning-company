@@ -9,6 +9,7 @@ import { checkJobPlacement } from "@/lib/queries/schedule";
 import { assessCancellation, blockingConflicts, type Conflict } from "@/lib/scheduling";
 import { generateOccurrences, addDays, startOfDay } from "@/lib/recurrence";
 import { nextDocumentNumber } from "@/lib/document-number";
+import { attributeBookingToCampaign } from "@/lib/campaigns";
 
 /**
  * Everything that changes the diary.
@@ -385,10 +386,10 @@ export async function generateSeriesJobsAction(
         }
       }
 
-      await prisma.$transaction(async (tx) => {
+      const newJob = await prisma.$transaction(async (tx) => {
         const jobNo = await nextDocumentNumber(tx, "JOB");
         const vatFils = Math.round((series.priceFils * (org?.vatRateBps ?? 500)) / 10000);
-        await tx.job.create({
+        return tx.job.create({
           data: {
             jobNo,
             clientId: series.clientId,
@@ -407,9 +408,15 @@ export async function generateSeriesJobsAction(
             vatFils,
             totalFils: series.priceFils + vatFils,
           },
+          select: { id: true },
         });
       });
       created += 1;
+
+      // If this client was messaged recently, that campaign gets the credit for
+      // the booking. Only the first new job counts, so one offer is not credited
+      // with a whole year of visits.
+      await attributeBookingToCampaign({ clientId: series.clientId, jobId: newJob.id });
     }
 
     await prisma.recurringSeries.update({

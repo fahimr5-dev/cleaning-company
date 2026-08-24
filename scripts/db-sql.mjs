@@ -29,8 +29,32 @@ if (!connectionString) {
   process.exit(1);
 }
 
-const client = new pg.Client({ connectionString });
-await client.connect();
+/**
+ * Neon is reached over a web connection rather than a plain database port.
+ * Everything else uses the ordinary driver. See src/lib/db-driver.ts.
+ */
+async function connect(url) {
+  if (!/@[^/]*\.neon\.tech/.test(url)) {
+    const c = new pg.Client({ connectionString: url });
+    await c.connect();
+    return { query: (sql) => c.query(sql), end: () => c.end() };
+  }
+
+  const { Client, neonConfig } = await import("@neondatabase/serverless");
+  neonConfig.webSocketConstructor ??= (await import("ws")).default;
+  const c = new Client(url);
+  await c.connect();
+  return { query: (sql) => c.query(sql), end: () => c.end() };
+}
+
+const client = await connect(connectionString);
+
+// CleanOS lives in its own schema so the other apps sharing this database can
+// have theirs. Taken from ?schema= on the connection string, as Prisma reads it.
+const schema = new URL(connectionString).searchParams.get("schema");
+if (schema) {
+  await client.query(`SET search_path = "${schema.replace(/"/g, '""')}", pg_temp, public`);
+}
 
 try {
   await client.query(readFileSync(file, "utf8"));

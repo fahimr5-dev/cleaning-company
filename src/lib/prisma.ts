@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { makeAdapter } from "@/lib/db-driver";
 
 /**
  * The Prisma database connection.
@@ -22,7 +22,8 @@ const connectionString =
     );
   })();
 
-const adapter = new PrismaPg({ connectionString });
+// The driver is chosen from the address in DATABASE_URL — see src/lib/db-driver.ts.
+const adapter = makeAdapter(connectionString);
 
 // Next.js hot-reloads on every file save in development, which would otherwise
 // open a new pool of database connections each time until the database refuses

@@ -1,7 +1,7 @@
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { makeAdapter } from "../src/lib/db-driver";
 
 /**
  * Proves the RLS-enforced connection actually restricts what a user can reach.
@@ -13,7 +13,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 try { process.loadEnvFile(".env"); } catch { /* env already set */ }
 
 const url = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url! }) });
+const prisma = new PrismaClient({ adapter: makeAdapter(url!) });
 
 // The fixed demo ids the seed creates.
 const OWNER = "00000000-0000-4000-8000-000000000001";
