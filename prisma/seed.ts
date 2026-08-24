@@ -15,6 +15,7 @@
  */
 
 import { PrismaClient } from "@prisma/client";
+import type { Frequency, JobStatus, Team, Zone } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { priceService, totalsFor, type RateCardRule } from "../src/lib/pricing";
 import { aed, vatOn } from "../src/lib/money";
@@ -173,7 +174,7 @@ async function main() {
     { nameEn: "Dubai Silicon Oasis", nameAr: "واحة دبي للسيليكون", cluster: "E", lat: 25.1279, lng: 55.3861 },
   ];
 
-  const zones = [];
+  const zones: Zone[] = [];
   for (let i = 0; i < zoneSpec.length; i++) {
     const z = zoneSpec[i];
     zones.push(
@@ -293,7 +294,7 @@ async function main() {
   };
   await prisma.frequencyModifier.createMany({
     data: Object.entries(frequencyDiscountBps).map(([frequency, discountBps]) => ({
-      rateCardId: rateCard.id, frequency, discountBps,
+      rateCardId: rateCard.id, frequency: frequency as Frequency, discountBps,
     })),
   });
 
@@ -380,7 +381,7 @@ async function main() {
     { name: "Team Delta", nameAr: "فريق دلتا", color: "#9333EA", zone: "Al Barsha" },
   ];
 
-  const teams = [];
+  const teams: Team[] = [];
   for (let i = 0; i < teamSpec.length; i++) {
     const t = teamSpec[i];
     const team = await prisma.team.create({
@@ -704,7 +705,6 @@ async function main() {
   // 10. 200 jobs spread from 90 days ago to 30 days ahead
   // -------------------------------------------------------------------------
   const TOTAL_JOBS = 200;
-  const slots = ["08:00", "09:00", "10:30", "13:00", "14:30", "16:00"];
   let jobSeq = 0;
   let invoiceSeq = 0;
   let paymentSeq = 0;
@@ -712,16 +712,81 @@ async function main() {
 
   const completedJobs: Array<{ id: string; clientId: string; netFils: number; vatFils: number; totalFils: number; end: Date; serviceCode: string; teamId: string }> = [];
 
-  for (let i = 0; i < TOTAL_JOBS; i++) {
-    // Weighted towards the past so there is history to report on.
-    let offset = int(-90, 30);
-    let date = day(offset);
-    let guard = 0;
-    while (isWeekend(date) && guard++ < 10) {
-      offset = int(-90, 30);
-      date = day(offset);
+  // How many minutes of work each team already has on each day. The key is
+  // "teamId|2026-08-24". This is what stops a team being booked for 20 hours.
+  const bookedMinutes = new Map<string, number>();
+  const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+
+  /**
+   * Finds a team with room for a job of this length, starting from the day we
+   * wanted it on. Jobs stack one after another from the 08:00 shift start, and
+   * spill to the next day when every team is full — exactly how a real
+   * dispatcher fills a week.
+   */
+  function placeJob(preferred: Date, minutes: number) {
+    for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
+      const date = new Date(preferred);
+      date.setDate(date.getDate() + dayOffset);
+      if (isWeekend(date)) continue;
+
+      // Try the least-loaded team first so work spreads out evenly.
+      const candidates = [...teams].sort(
+        (a, b) =>
+          (bookedMinutes.get(`${a.id}|${dayKey(date)}`) ?? 0) -
+          (bookedMinutes.get(`${b.id}|${dayKey(date)}`) ?? 0),
+      );
+
+      for (const team of candidates) {
+        const key = `${team.id}|${dayKey(date)}`;
+        const used = bookedMinutes.get(key) ?? 0;
+        // A job longer than a whole working day (a post-construction villa, for
+        // example) can never "fit" — so give it a team that is otherwise free
+        // and let it take the whole day.
+        const fits = used + minutes <= team.capacityMinutesPerDay;
+        if (!fits && used > 0) continue;
+
+        bookedMinutes.set(key, used + minutes);
+        return { team, date, start: addMinutes(at(date, team.shiftStart), used) };
+      }
     }
-    if (isWeekend(date)) continue;
+
+    // Everything is full for a fortnight — put it on the least-loaded team and
+    // let the over-booking show up honestly on the capacity view.
+    const team = teams[0];
+    const date = isWeekend(preferred) ? day(1) : preferred;
+    const key = `${team.id}|${dayKey(date)}`;
+    const used = bookedMinutes.get(key) ?? 0;
+    bookedMinutes.set(key, used + minutes);
+    return { team, date, start: addMinutes(at(date, team.shiftStart), used) };
+  }
+
+  // Decide WHEN the 200 jobs happen before creating any of them, so the spread
+  // is deliberate rather than luck. A guaranteed batch lands today, otherwise
+  // the dashboard and the calendar can look empty on the day you first open it.
+  const JOBS_TODAY = 12;
+  const offsets: number[] = Array.from({ length: JOBS_TODAY }, () => 0);
+  while (offsets.length < TOTAL_JOBS) {
+    const r = rnd();
+    if (r < 0.45) offsets.push(-int(1, 30));       // recent past: fresh history
+    else if (r < 0.65) offsets.push(-int(31, 90)); // older past: trend data
+    else offsets.push(int(1, 30));                 // upcoming work
+  }
+  // Shuffle so job numbers are not issued in date order, as in real life.
+  for (let i = offsets.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [offsets[i], offsets[j]] = [offsets[j], offsets[i]];
+  }
+
+  for (let i = 0; i < TOTAL_JOBS; i++) {
+    const offset = offsets[i];
+    let date = day(offset);
+    // Teams work Sunday–Thursday, so nudge any job that landed on the Friday or
+    // Saturday weekend forward to the next working day. Jobs booked for today
+    // stay put: weekend call-outs do happen.
+    let guard = 0;
+    while (offset !== 0 && isWeekend(date) && guard++ < 3) {
+      date = day(offset + guard);
+    }
 
     const client = pick(clients);
     const isRecurring = seriesByClient.has(client.id) && chance(0.6);
@@ -737,16 +802,27 @@ async function main() {
     const frequency = isRecurring ? "WEEKLY" : "ONE_OFF";
     const totals = totalsFor([priced.netFils], isRecurring ? frequencyDiscountBps[frequency] : 0, org.vatRateBps);
 
-    const team = pick(teams);
-    const start = at(date, pick(slots));
+    // Fit the job into a team's actual working day instead of dropping it on a
+    // random team at a random time. Without this, four teams end up "253%
+    // utilised" and the capacity figure means nothing.
+    const placement = placeJob(date, priced.minutes);
+    const team = placement.team;
+    const start = placement.start;
     const end = addMinutes(start, priced.minutes);
+    date = placement.date;
 
     // Status follows the calendar: past jobs are done, future jobs are booked.
-    let status: string;
+    let status: JobStatus;
     if (offset < 0) {
       status = chance(0.06) ? "CANCELLED" : chance(0.04) ? "NO_ACCESS" : "COMPLETED";
     } else if (offset === 0) {
-      status = pick(["IN_PROGRESS", "EN_ROUTE", "SCHEDULED", "COMPLETED"] as const);
+      // A believable snapshot of a day in progress: some done, one or two on
+      // the road, the rest still to come.
+      status = pick([
+        "COMPLETED", "COMPLETED", "COMPLETED",
+        "IN_PROGRESS", "EN_ROUTE",
+        "SCHEDULED", "SCHEDULED", "SCHEDULED",
+      ] as const);
     } else {
       status = "SCHEDULED";
     }
@@ -1291,7 +1367,6 @@ async function createAuthUsers() {
     // id in Supabase Auth always matches the id in our users table.
     await admin.auth.admin.deleteUser(id).catch(() => undefined);
     const { error } = await admin.auth.admin.createUser({
-      // @ts-expect-error - `id` is accepted by the admin API but missing from its types.
       id,
       email: login.email,
       password,

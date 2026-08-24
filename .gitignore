@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...but the documented template MUST be committed: it is how a new developer
+# (or a new laptop) learns which settings exist and where to get them.
+!.env.example
 
 # vercel
 .vercel
