@@ -223,5 +223,175 @@
     "expired": "منتهي الصلاحية",
     "download": "تحميل PDF",
     "accept": "الموافقة عبر واتساب"
+  },
+  "leads": {
+    "title": "العملاء المحتملون",
+    "subtitle": "كل استفسار من أول تواصل حتى الفوز أو الخسارة. تصل استفسارات الموقع هنا تلقائياً.",
+    "dragHint": "اسحب البطاقة بين الأعمدة لنقلها. عند وضع علامة خسارة سيُطلب منك السبب.",
+    "today": "اليوم",
+    "daysOld": "منذ {days} يوم",
+    "beds": "{count} غرفة",
+    "call": "اتصال",
+    "status": {
+      "NEW": "جديد",
+      "CONTACTED": "تم التواصل",
+      "QUOTED": "تم التسعير",
+      "WON": "تم الفوز",
+      "LOST": "خسارة"
+    },
+    "lostReason": {
+      "PRICE_TOO_HIGH": "السعر مرتفع",
+      "NO_AVAILABILITY": "لا يوجد موعد متاح",
+      "WENT_WITH_COMPETITOR": "اختار منافساً",
+      "NO_RESPONSE": "لا يوجد رد",
+      "OUT_OF_SERVICE_AREA": "خارج نطاق الخدمة",
+      "NOT_SERIOUS": "غير جاد",
+      "OTHER": "أخرى"
+    },
+    "stats": {
+      "open": "استفسارات مفتوحة",
+      "openHint": "جديد أو تم التواصل أو تم التسعير",
+      "pipelineValue": "قيمة المسار",
+      "pipelineValueHint": "القيمة التقديرية للاستفسارات المفتوحة",
+      "won": "تم الفوز",
+      "wonHint": "من {count} استفسار",
+      "conversion": "معدل التحويل",
+      "conversionHint": "نسبة الفوز من الاستفسارات المحسومة"
+    },
+    "lostDialog": {
+      "title": "لماذا خسرنا هذا العميل؟",
+      "body": "تسجيل السبب هو ما يحوّل الصفقة الخاسرة إلى درس مفيد.",
+      "reason": "السبب",
+      "note": "ملاحظات إضافية (اختياري)",
+      "cancel": "إلغاء",
+      "confirm": "تسجيل كخسارة"
+    },
+    "detail": {
+      "reference": "الرقم المرجعي",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "source": "المصدر",
+      "service": "الخدمة",
+      "property": "نوع العقار",
+      "size": "الحجم",
+      "frequency": "التكرار",
+      "area": "المنطقة",
+      "estimate": "السعر المقدم",
+      "quote": "رقم العرض",
+      "viewQuote": "عرض السعر كما يراه العميل",
+      "convert": "تحويل إلى عميل",
+      "converted": "تم إنشاء العميل {clientNo}",
+      "addNote": "إضافة ملاحظة",
+      "notePlaceholder": "تم الاتصال، طلب المعاودة الأسبوع القادم…",
+      "saveNote": "حفظ الملاحظة",
+      "noteSaved": "تم حفظ الملاحظة"
+    }
+  },
+  "clients": {
+    "title": "العملاء",
+    "subtitle": "كل من يتعامل معك، مع عقاراتهم وملاحظات الدخول وأداء الإحالات.",
+    "searchPlaceholder": "ابحث بالاسم أو الهاتف أو البريد أو الرمز…",
+    "resultCount": "{count} عميل",
+    "empty": "لا يوجد عملاء مطابقون لهذه الفلاتر.",
+    "commercial": "تجاري",
+    "paused": "موقوف",
+    "never": "لا يوجد",
+    "backToList": "كل العملاء",
+    "email": "البريد الإلكتروني",
+    "main": "الأساسي",
+    "properties": "العقارات ({count})",
+    "bedCount": "{count} غرفة",
+    "bathCount": "{count} حمام",
+    "hasPets": "حيوانات أليفة",
+    "keyHeld": "لدينا المفتاح",
+    "recentJobs": "المهام الأخيرة",
+    "noJobs": "لا توجد مهام بعد.",
+    "pageOf": "صفحة {page} من {total}",
+    "previous": "السابق",
+    "next": "التالي",
+    "filters": {
+      "type": "النوع",
+      "status": "الحالة",
+      "typeValues": {
+        "ALL": "الكل",
+        "RESIDENTIAL": "سكني",
+        "COMMERCIAL": "تجاري"
+      },
+      "statusValues": {
+        "ALL": "الكل",
+        "ACTIVE": "نشط",
+        "PAUSED": "موقوف",
+        "CHURNED": "منقطع"
+      }
+    },
+    "table": {
+      "client": "العميل",
+      "contact": "التواصل",
+      "area": "المنطقة",
+      "jobs": "المهام",
+      "lifetime": "القيمة الإجمالية",
+      "outstanding": "المستحق",
+      "lastJob": "آخر مهمة"
+    },
+    "stats": {
+      "active": "العملاء النشطون",
+      "commercial": "تجاري",
+      "commercialHint": "مكاتب وشركات",
+      "paused": "موقوفون عن الحجز",
+      "pausedHint": "غالباً بسبب فواتير غير مدفوعة",
+      "outstanding": "المستحق",
+      "lifetime": "القيمة الإجمالية",
+      "lifetimeHint": "عبر {count} فاتورة",
+      "completedJobs": "المهام المكتملة",
+      "rating": "متوسط التقييم",
+      "ratingHint": "من {count} تقييم",
+      "outstandingHint": "{count} غير مدفوعة"
+    },
+    "referral": {
+      "title": "الإحالات",
+      "explain": "يحصل هذا العميل على {amount} في كل مرة يحجز فيها شخص برمزه.",
+      "copy": "نسخ الرمز",
+      "copied": "تم نسخ الرمز",
+      "copyFailed": "تعذر النسخ — يرجى تحديد الرمز يدوياً.",
+      "share": "مشاركة عبر واتساب",
+      "introduced": "أحالهم",
+      "rewarded": "تمت مكافأتهم",
+      "revenue": "الإيرادات",
+      "none": "لم يستخدم أحد هذا الرمز بعد.",
+      "unknownReferee": "بانتظار التسجيل",
+      "referredBy": "تمت إحالته بواسطة",
+      "status": {
+        "PENDING": "معلق",
+        "QUALIFIED": "مؤهل",
+        "REWARDED": "تمت المكافأة",
+        "CANCELLED": "ملغى"
+      }
+    },
+    "controls": {
+      "billing": "الفوترة",
+      "ownerOnly": "المالك فقط يمكنه تغيير شروط الفوترة.",
+      "billingMode": "إصدار الفاتورة",
+      "billingModes": {
+        "PER_JOB": "بعد كل مهمة",
+        "MONTHLY_CONSOLIDATED": "شهرياً، مجمّعة"
+      },
+      "paymentTerms": "مهلة السداد (أيام)",
+      "trn": "الرقم الضريبي للعميل",
+      "trnPlaceholder": "لفواتير ضريبة القيمة المضافة",
+      "billingSaved": "تم حفظ إعدادات الفوترة",
+      "save": "حفظ",
+      "booking": "الحجز",
+      "bookingHint": "العميل الموقوف لا يمكنه الحجز حتى تستأنف حسابه.",
+      "currentlyPaused": "الحجوزات موقوفة: {reason}",
+      "pause": "إيقاف الحجوزات",
+      "pauseReason": "السبب",
+      "pauseReasonPlaceholder": "فاتورتان متأخرتان",
+      "paused": "تم إيقاف الحجوزات",
+      "resume": "استئناف الحجوزات",
+      "resumed": "تم استئناف الحجوزات",
+      "notes": "ملاحظات داخلية",
+      "notesPlaceholder": "يفضل المواعيد الصباحية. دائماً يكرم الفريق.",
+      "notesSaved": "تم حفظ الملاحظات"
+    }
   }
 }

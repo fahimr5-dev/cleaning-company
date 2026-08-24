@@ -36,8 +36,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: "grow",
     items: [
-      { href: "/leads", key: "leads", icon: UserPlus, roles: OFFICE, phase: 2 },
-      { href: "/clients", key: "clients", icon: Users, roles: OFFICE, phase: 2 },
+      { href: "/leads", key: "leads", icon: UserPlus, roles: OFFICE },
+      { href: "/clients", key: "clients", icon: Users, roles: OFFICE },
     ],
   },
   {

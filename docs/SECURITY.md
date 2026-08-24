@@ -70,9 +70,9 @@ could not, because the database would refuse.
   record and therefore sees the salary fields on it. Postgres can restrict
   individual columns, but that is a separate mechanism from RLS.
   **TODO (Phase 7):** hide salary columns from `OPS_MANAGER`.
-- **The audit log is not yet written to.** The table, its rules and its indexes
-  exist and are correct; nothing populates it until Phase 2 adds the write
-  helper. **TODO (Phase 2).**
+- ~~The audit log is not yet written to.~~ **Done in Phase 2.** Lead moves,
+  conversions, client billing changes and booking pauses all write to it via
+  `recordAudit()` in `src/lib/audit.ts`.
 
 ## After every future migration
 
@@ -84,6 +84,19 @@ npm run db:rls && npm run test:rls
 ```
 
 The first command is safe to run repeatedly.
+
+## Public pages and the anon role
+
+The marketing site and the quote calculator are public, but they still read
+nothing directly from the browser. Prices are worked out by a Server Action on
+the server, so the rate card never leaves it and a visitor cannot change a
+price by editing the page. That is why `anon` can stay locked out of every
+table.
+
+A customer's quote page (`/en/quote/<id>`) is protected by the quote's random
+128-bit id acting as the password, the same way an unlisted document link
+works. It cannot be guessed, it is only ever sent to the person it belongs to,
+and nothing about any other customer is reachable from it.
 
 ## Dependency note
 

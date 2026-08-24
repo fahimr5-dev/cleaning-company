@@ -223,5 +223,175 @@
     "expired": "Expired",
     "download": "Download PDF",
     "accept": "Accept on WhatsApp"
+  },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Every enquiry, from first contact to won or lost. Website enquiries arrive here automatically.",
+    "dragHint": "Drag a card between columns to move it. Marking a lead as lost asks you why.",
+    "today": "Today",
+    "daysOld": "{days}d old",
+    "beds": "{count} bed",
+    "call": "Call",
+    "status": {
+      "NEW": "New",
+      "CONTACTED": "Contacted",
+      "QUOTED": "Quoted",
+      "WON": "Won",
+      "LOST": "Lost"
+    },
+    "lostReason": {
+      "PRICE_TOO_HIGH": "Price too high",
+      "NO_AVAILABILITY": "No availability",
+      "WENT_WITH_COMPETITOR": "Went with a competitor",
+      "NO_RESPONSE": "No response",
+      "OUT_OF_SERVICE_AREA": "Outside our area",
+      "NOT_SERIOUS": "Not serious",
+      "OTHER": "Other"
+    },
+    "stats": {
+      "open": "Open leads",
+      "openHint": "New, contacted or quoted",
+      "pipelineValue": "Pipeline value",
+      "pipelineValueHint": "Estimated value of open leads",
+      "won": "Won",
+      "wonHint": "From {count} leads",
+      "conversion": "Conversion rate",
+      "conversionHint": "Won as a share of decided leads"
+    },
+    "lostDialog": {
+      "title": "Why was this lead lost?",
+      "body": "Recording the reason is what turns a lost deal into something you can learn from.",
+      "reason": "Reason",
+      "note": "Anything else? (optional)",
+      "cancel": "Cancel",
+      "confirm": "Mark as lost"
+    },
+    "detail": {
+      "reference": "Reference",
+      "phone": "Phone",
+      "email": "Email",
+      "source": "Source",
+      "service": "Service",
+      "property": "Property",
+      "size": "Size",
+      "frequency": "Frequency",
+      "area": "Area",
+      "estimate": "Quoted",
+      "quote": "Quote no.",
+      "viewQuote": "View the customer's quote",
+      "convert": "Convert to client",
+      "converted": "Created client {clientNo}",
+      "addNote": "Add a note",
+      "notePlaceholder": "Called, asked us to try again next week…",
+      "saveNote": "Save note",
+      "noteSaved": "Note saved"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "subtitle": "Everyone who pays you, with their properties, access notes and referral performance.",
+    "searchPlaceholder": "Search name, phone, email or code…",
+    "resultCount": "{count} clients",
+    "empty": "No clients match those filters.",
+    "commercial": "Commercial",
+    "paused": "Paused",
+    "never": "Never",
+    "backToList": "All clients",
+    "email": "Email",
+    "main": "Main",
+    "properties": "Properties ({count})",
+    "bedCount": "{count} bed",
+    "bathCount": "{count} bath",
+    "hasPets": "Pets",
+    "keyHeld": "We hold a key",
+    "recentJobs": "Recent jobs",
+    "noJobs": "No jobs booked yet.",
+    "pageOf": "Page {page} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "filters": {
+      "type": "Type",
+      "status": "Status",
+      "typeValues": {
+        "ALL": "All",
+        "RESIDENTIAL": "Residential",
+        "COMMERCIAL": "Commercial"
+      },
+      "statusValues": {
+        "ALL": "All",
+        "ACTIVE": "Active",
+        "PAUSED": "Paused",
+        "CHURNED": "Churned"
+      }
+    },
+    "table": {
+      "client": "Client",
+      "contact": "Contact",
+      "area": "Area",
+      "jobs": "Jobs",
+      "lifetime": "Lifetime value",
+      "outstanding": "Outstanding",
+      "lastJob": "Last job"
+    },
+    "stats": {
+      "active": "Active clients",
+      "commercial": "Commercial",
+      "commercialHint": "Offices and businesses",
+      "paused": "Paused from booking",
+      "pausedHint": "Usually unpaid invoices",
+      "outstanding": "Outstanding",
+      "lifetime": "Lifetime value",
+      "lifetimeHint": "Across {count} invoices",
+      "completedJobs": "Jobs completed",
+      "rating": "Average rating",
+      "ratingHint": "From {count} reviews",
+      "outstandingHint": "{count} unpaid"
+    },
+    "referral": {
+      "title": "Referrals",
+      "explain": "This client earns {amount} each time somebody books with their code.",
+      "copy": "Copy code",
+      "copied": "Code copied",
+      "copyFailed": "Could not copy — select the code by hand.",
+      "share": "Share on WhatsApp",
+      "introduced": "Introduced",
+      "rewarded": "Rewarded",
+      "revenue": "Revenue",
+      "none": "Nobody has used this code yet.",
+      "unknownReferee": "Pending signup",
+      "referredBy": "Referred by",
+      "status": {
+        "PENDING": "Pending",
+        "QUALIFIED": "Qualified",
+        "REWARDED": "Rewarded",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "controls": {
+      "billing": "Billing",
+      "ownerOnly": "Only an Owner can change billing terms.",
+      "billingMode": "Invoice",
+      "billingModes": {
+        "PER_JOB": "After every job",
+        "MONTHLY_CONSOLIDATED": "Monthly, consolidated"
+      },
+      "paymentTerms": "Payment terms (days)",
+      "trn": "Client TRN",
+      "trnPlaceholder": "For VAT invoices",
+      "billingSaved": "Billing settings saved",
+      "save": "Save",
+      "booking": "Booking",
+      "bookingHint": "A paused client cannot book until you resume them.",
+      "currentlyPaused": "Bookings are paused: {reason}",
+      "pause": "Pause bookings",
+      "pauseReason": "Reason",
+      "pauseReasonPlaceholder": "Two invoices overdue",
+      "paused": "Bookings paused",
+      "resume": "Resume bookings",
+      "resumed": "Bookings resumed",
+      "notes": "Internal notes",
+      "notesPlaceholder": "Prefers morning slots. Always tips the team.",
+      "notesSaved": "Notes saved"
+    }
   }
 }

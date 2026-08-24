@@ -3,10 +3,11 @@
 Management platform for a residential and commercial cleaning company operating
 in the UAE.
 
-**Status: Phase 1 of 8 complete.** Accounts, roles, the database, the security
-rules and the demo data are built and tested. The feature screens arrive in
-later phases and currently show a clearly-labelled placeholder rather than
-anything that pretends to work.
+**Status: Phase 2 of 8 complete.** Accounts, roles, the database and the
+security rules are built and tested, and the first working module is live: the
+public website with its instant-quote calculator, the lead pipeline, and client
+records with referral tracking. Screens from later phases show a
+clearly-labelled placeholder rather than anything that pretends to work.
 
 ## Getting started
 
@@ -25,7 +26,7 @@ npm run dev              # http://localhost:3000
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Auth, roles, database schema, seed data, admin shell | **Done** |
-| 2 | Clients, leads, quote calculator, public site | Not started |
+| 2 | Clients, leads, quote calculator, public site | **Done** |
 | 3 | Scheduling and the recurring job engine | Not started |
 | 4 | Cleaner mobile view, checklists, photos | Not started |
 | 5 | Invoicing, Stripe, dunning | Not started |
@@ -52,6 +53,12 @@ shadcn/ui · Supabase (Postgres, Auth, Storage, RLS) · Prisma 7 · next-intl
   rewards.
 - **Unbuilt screens say so loudly.** See `src/components/common/todo-screen.tsx`.
   There is no silent placeholder anywhere in this codebase.
+- **Prices are never in the code.** Every figure comes from the rate card in
+  the database, through `src/lib/quote.ts`. If a rule is missing, the app says
+  so rather than quoting zero.
+- **Client components never import database modules.** Anything a browser file
+  imports gets shipped to the visitor. Shared types live in files like
+  `src/lib/leads-shared.ts`, which contain no Prisma import.
 
 ## Security
 
@@ -74,3 +81,5 @@ what this model does *not* yet cover.
 | `npm run db:studio` | Browse the database |
 | `npm run db:rls` | Re-apply security rules (after any new migration) |
 | `npm run test:rls` | Verify the security rules |
+| `npm test` | Run the money and pricing tests |
+| `npm run test:e2e` | Drive the real quote calculator in a browser |
