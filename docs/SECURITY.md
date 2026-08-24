@@ -75,10 +75,13 @@ manager should not see. A bug in the cleaner app could not.**
 
 ### Also not yet handled
 
-- **Salary is row-level, not column-level.** An ops manager can open a staff
-  record and therefore sees the salary fields on it. Postgres can restrict
-  individual columns, but that is a separate mechanism from RLS.
-  **TODO (Phase 7):** hide salary columns from `OPS_MANAGER`.
+- ~~Salary is row-level, not column-level.~~ **Done in Phase 7.** `basicSalaryFils`,
+  `allowancesFils`, `iban` and `wpsLabourCardNo` are revoked from the
+  `authenticated` role outright and re-granted column by column for everything
+  else, so no signed-in session can read pay by any route. Payroll screens run on
+  the server's own connection, reachable only from code that has already checked
+  the role. Proved by four assertions in `npm run test:rls` — reading a salary as
+  an ops manager returns Postgres error 42501, while the staff list still works.
 - **Photo storage rules are written but untested here.** The bucket policies in
   `prisma/sql/02_storage.sql` can only run inside a real Supabase project, so
   they have been reviewed but not executed. Run `npm run test:rls` after

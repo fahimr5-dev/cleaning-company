@@ -3,14 +3,16 @@ import { sendRatingRequests } from "@/lib/ratings";
 import { sendNpsSurveys } from "@/lib/nps";
 import { detectChurnRisk } from "@/lib/churn";
 import { sweepPendingReferrals } from "@/lib/referrals";
+import { runComplianceAlerts, runLowStockAlerts } from "@/lib/compliance";
 
 /**
- * The scheduled job that keeps clients from drifting away.
+ * The nightly housekeeping job.
  *
  * PLAIN ENGLISH: once a day this sends the "how did we do?" messages that are
  * now due, sends the quarterly survey to anyone due one, rebuilds the list of
- * clients who look like they are leaving, and pays out any referral that has
- * quietly qualified since yesterday.
+ * clients who look like they are leaving, pays out any referral that has
+ * quietly qualified since yesterday, warns you about visas and Emirates IDs
+ * that are about to expire, and tells you what needs ordering.
  *
  * Protected by CRON_SECRET, the same as the payment reminders. Without that
  * secret set it refuses to run rather than being left open.
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest) {
   const nps = await sendNpsSurveys();
   const referrals = await sweepPendingReferrals();
   const risk = await detectChurnRisk();
+  const compliance = await runComplianceAlerts();
+  const stock = await runLowStockAlerts();
 
-  return NextResponse.json({ ok: true, ratings, nps, referrals, risk });
+  return NextResponse.json({ ok: true, ratings, nps, referrals, risk, compliance, stock });
 }

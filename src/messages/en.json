@@ -951,5 +951,272 @@
     "thu": "Thu",
     "fri": "Fri",
     "sat": "Sat"
+  },
+  "staff": {
+    "title": "Staff & HR",
+    "subtitle": "Who works for you, whose papers are about to lapse, and which hours are payable.",
+    "searchPlaceholder": "Search name, employee number or phone…",
+    "resultCount": "{count} people",
+    "empty": "Nobody matches those filters.",
+    "backToList": "All staff",
+    "onLeave": "On leave",
+    "hiredOn": "joined {date}",
+    "blockedWarning": "{count} people cannot legally be sent to a job today — their papers have lapsed. Scheduling them anyway is your fine, not theirs.",
+    "stats": {
+      "active": "Active staff",
+      "blocked": "Cannot work today",
+      "blockedHint": "Visa, Emirates ID or labour card lapsed",
+      "expiring": "Papers expiring",
+      "expiringHint": "Inside your warning window",
+      "awaitingReview": "Hours to review",
+      "awaitingReviewHint": "Clocked away from the property"
+    },
+    "filters": {
+      "papers": "Papers",
+      "papersValues": {
+        "ALL": "All",
+        "PROBLEM": "Needs attention",
+        "EXPIRED": "Expired",
+        "EXPIRING": "Expiring",
+        "VALID": "In order"
+      },
+      "status": "Status",
+      "statusValues": {
+        "ALL": "All",
+        "ACTIVE": "Active",
+        "ON_LEAVE": "On leave",
+        "SUSPENDED": "Suspended",
+        "TERMINATED": "Left"
+      }
+    },
+    "table": {
+      "person": "Person",
+      "position": "Role",
+      "team": "Team",
+      "papers": "Papers",
+      "package": "Monthly package"
+    },
+    "positions": {
+      "CLEANER": "Cleaner",
+      "TEAM_LEAD": "Team lead",
+      "SUPERVISOR": "Supervisor",
+      "DRIVER": "Driver",
+      "OFFICE": "Office"
+    },
+    "compliance": {
+      "VALID": "In order",
+      "EXPIRING": "Expiring",
+      "EXPIRED": "Expired",
+      "MISSING": "Not recorded",
+      "expiringIn": "{days} days left",
+      "cannotWork": "Cannot be scheduled",
+      "cannotWorkLong": "This person must not be sent to a job until their papers are renewed. The fine for sending them lands on you, not on them."
+    },
+    "leave": {
+      "pendingTitle": "Leave waiting for a decision",
+      "none": "No leave requests waiting.",
+      "days": "days",
+      "daysCount": "{days} days",
+      "balance": "{days} days left this year",
+      "types": {
+        "ANNUAL": "Annual leave",
+        "SICK": "Sick leave",
+        "UNPAID": "Unpaid leave",
+        "EMERGENCY": "Emergency leave",
+        "MATERNITY": "Maternity leave",
+        "HAJJ": "Hajj leave"
+      },
+      "approve": "Approve",
+      "reject": "Refuse",
+      "approved": "Leave approved.",
+      "rejected": "Leave refused.",
+      "approvedWithJobs": "Approved — but {count} jobs are booked with them in that period.",
+      "recrewHint": "Nothing was cancelled. Re-crew those jobs on the schedule.",
+      "balanceTitle": "Annual leave",
+      "entitlement": "Entitlement",
+      "taken": "Taken",
+      "booked": "Booked, not yet taken",
+      "remaining": "Left",
+      "historyTitle": "Leave history",
+      "noHistory": "No leave recorded.",
+      "status": {
+        "PENDING": "Waiting",
+        "APPROVED": "Approved",
+        "REJECTED": "Refused",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "timesheets": {
+      "title": "Hours to review",
+      "hint": "Clocked in or out away from the property. Not payable until you decide.",
+      "none": "Nothing to review — every clock-in matched its address.",
+      "andMore": "{count} more waiting, not shown here.",
+      "noJob": "No job attached",
+      "minutes": "{minutes} min",
+      "distance": "{metres} m from the property",
+      "review": "Review",
+      "reviewTitle": "Pay these hours?",
+      "reviewBody": "The GPS did not match the property. Approving makes these minutes payable; refusing does not.",
+      "note": "Note",
+      "notePlaceholder": "Called the team lead, they were parked around the corner…",
+      "dontPay": "Do not pay",
+      "pay": "Approve for pay",
+      "approved": "Hours approved for pay.",
+      "rejected": "Hours refused.",
+      "recentTitle": "Recent hours",
+      "payable": "{hours} payable hours",
+      "awaiting": "{count} awaiting review",
+      "noHistory": "No hours recorded.",
+      "status": {
+        "NOT_REQUIRED": "Clean",
+        "PENDING": "To review",
+        "APPROVED": "Approved",
+        "REJECTED": "Refused"
+      }
+    },
+    "documents": {
+      "title": "Legal documents",
+      "none": "No documents recorded. A visa with no expiry date cannot be warned about.",
+      "noExpiry": "No expiry",
+      "add": "Add document",
+      "edit": "Edit",
+      "addTitle": "Add a document",
+      "editTitle": "Edit document",
+      "body": "The expiry date is what the 60/30/7-day warnings watch. Without it, nothing is sent.",
+      "type": "What is it?",
+      "types": {
+        "VISA": "Visa",
+        "EMIRATES_ID": "Emirates ID",
+        "LABOUR_CARD": "Labour card",
+        "MEDICAL_FITNESS": "Medical fitness",
+        "PASSPORT": "Passport",
+        "CONTRACT": "Contract",
+        "TRAINING_CERT": "Training certificate",
+        "OTHER": "Other"
+      },
+      "number": "Number",
+      "issued": "Issued",
+      "expires": "Expires",
+      "renewedHint": "Changing the expiry date starts the warnings again from scratch, so the new expiry gets its own 60, 30 and 7-day reminders.",
+      "notes": "Notes",
+      "cancel": "Cancel",
+      "save": "Save document",
+      "saved": "Document saved."
+    },
+    "pay": {
+      "title": "Pay",
+      "basic": "Basic salary",
+      "allowances": "Allowances",
+      "package": "Monthly package",
+      "noIban": "No IBAN recorded — they cannot be included in a WPS file.",
+      "wpsNote": "CleanOS never processes salaries. These are the figures you hand to your bank.",
+      "hidden": "Only the owner can see what staff are paid. The database refuses these fields to every signed-in session independently."
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "What is on the shelf, what needs ordering, and which machines are due a service.",
+    "searchPlaceholder": "Search name, code or supplier…",
+    "resultCount": "{count} items",
+    "empty": "No items match those filters.",
+    "orderSuggestion": "Order about {qty}",
+    "stats": {
+      "items": "Items tracked",
+      "needsOrder": "Needs ordering",
+      "needsOrderHint": "{out} completely out",
+      "stockValue": "Stock value",
+      "stockValueHint": "At cost, not at what you charge",
+      "machinesDown": "Machines unavailable",
+      "machinesDownHint": "In repair, lost, or overdue a service"
+    },
+    "filters": {
+      "level": "Stock",
+      "levelValues": {
+        "ALL": "All",
+        "NEEDS_ORDER": "Needs ordering",
+        "OUT_OF_STOCK": "Out of stock",
+        "LOW": "Getting low",
+        "OK": "Fine"
+      }
+    },
+    "table": {
+      "item": "Item",
+      "onHand": "On hand",
+      "reorderAt": "Reorder at",
+      "used30": "Used (30d)",
+      "value": "Value",
+      "status": "Stock"
+    },
+    "levels": {
+      "OUT_OF_STOCK": "Out of stock",
+      "REORDER": "Order now",
+      "LOW": "Getting low",
+      "OK": "Fine"
+    },
+    "ledger": {
+      "title": "Recent stock movements",
+      "hint": "Every number above is the sum of these — nothing is typed in directly.",
+      "none": "No stock movements recorded yet."
+    },
+    "equipment": {
+      "title": "Machines",
+      "hint": "{total} machines · {overdue} overdue a service",
+      "none": "No machines recorded.",
+      "unassigned": "Not assigned",
+      "withheld": "Should not go out today",
+      "status": {
+        "OVERDUE": "Service overdue",
+        "DUE_SOON": "Service due soon",
+        "SCHEDULED": "Serviced",
+        "NOT_SCHEDULED": "No service set"
+      }
+    },
+    "movement": {
+      "button": "Record",
+      "onHand": "{qty} {unit} on hand right now",
+      "what": "What happened?",
+      "types": {
+        "PURCHASE": "Bought",
+        "ISSUE_TO_TEAM": "Issued to a team",
+        "RETURN": "Returned",
+        "WASTAGE": "Wasted or spilled",
+        "ADJUSTMENT": "Stock count"
+      },
+      "units": {
+        "PIECE": "pcs",
+        "LITRE": "L",
+        "KILOGRAM": "kg",
+        "BOX": "boxes",
+        "ROLL": "rolls"
+      },
+      "quantity": "How many?",
+      "adjustBy": "Correct by how much? (minus to reduce)",
+      "afterwards": "{qty} on the shelf afterwards",
+      "wouldGoNegative": "This would leave {qty} — more than you have. It will be recorded anyway, so the count stays honest.",
+      "note": "Note",
+      "notePlaceholder": "Invoice number, which van, why it was wasted…",
+      "cancel": "Cancel",
+      "save": "Record it",
+      "saved": "Recorded. {qty} {unit} on the shelf.",
+      "negativeWarning": "Recorded, but the count is now {qty}. Check the shelf — something was taken without being logged."
+    },
+    "maintenance": {
+      "button": "Service",
+      "body": "{tag} — recording a service schedules the next one automatically from this machine's own interval.",
+      "what": "What was done?",
+      "types": {
+        "SCHEDULED": "Service",
+        "REPAIR": "Repair",
+        "INSPECTION": "Inspection"
+      },
+      "when": "When",
+      "cost": "Cost (AED)",
+      "vendor": "Who did it",
+      "notes": "Notes",
+      "cancel": "Cancel",
+      "save": "Record service",
+      "savedWithNext": "Recorded. Next service due {date}.",
+      "savedNoInterval": "Recorded. No service interval is set for this machine, so nothing was scheduled."
+    }
   }
 }

@@ -25,7 +25,8 @@
     "test:e2e:invoices": "node tests/e2e/invoices.mjs",
     "db:roles": "node scripts/db-sql.mjs prisma/sql/00_roles.sql",
     "db:migrate:http": "node scripts/db-migrate.mjs",
-    "test:e2e:retention": "node tests/e2e/retention.mjs"
+    "test:e2e:retention": "node tests/e2e/retention.mjs",
+    "test:e2e:hr": "node tests/e2e/hr.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

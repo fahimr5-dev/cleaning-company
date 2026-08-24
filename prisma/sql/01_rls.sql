@@ -248,6 +248,44 @@ END $$;
 --     marketing_spend (your ad budget) and audit_logs (the tamper trail).
 
 -- ----------------------------------------------------------------------------
+-- 6c. SALARY IS COLUMN-LEVEL, NOT ROW-LEVEL.
+--
+--     PLAIN ENGLISH: an operations manager needs the staff list — who is on
+--     which team, whose visa is expiring. They must not see what anyone earns.
+--     That is not a question of WHICH ROWS they can see, it is a question of
+--     WHICH COLUMNS, and Row Level Security cannot express it.
+--
+--     So the four payroll columns are taken away from every signed-in web
+--     session outright. Nothing reached through a login can read them, whatever
+--     the app asks for. Payroll screens run on the server's own connection,
+--     which is only reachable from code that has already checked the role.
+--
+--     This closes the TODO left open in Phase 1.
+-- ----------------------------------------------------------------------------
+
+DO $$
+DECLARE
+  allowed text;
+  secret_columns text[] := ARRAY[
+    'basicSalaryFils', 'allowancesFils', 'iban', 'wpsLabourCardNo'
+  ];
+BEGIN
+  -- A table-level grant beats any column-level revoke, so the table grant has
+  -- to go first and be replaced by an explicit list of the safe columns.
+  REVOKE SELECT, UPDATE ON cleanos.staff FROM authenticated;
+
+  SELECT string_agg(quote_ident(column_name), ', ')
+  INTO allowed
+  FROM information_schema.columns
+  WHERE table_schema = 'cleanos'
+    AND table_name = 'staff'
+    AND NOT (column_name = ANY(secret_columns));
+
+  EXECUTE format('GRANT SELECT (%s) ON cleanos.staff TO authenticated', allowed);
+  EXECUTE format('GRANT UPDATE (%s) ON cleanos.staff TO authenticated', allowed);
+END $$;
+
+-- ----------------------------------------------------------------------------
 -- 7. CLEANER — their own work and nothing else.
 -- ----------------------------------------------------------------------------
 

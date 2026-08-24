@@ -3,7 +3,7 @@
 Management platform for a residential and commercial cleaning company operating
 in the UAE.
 
-**Status: Phase 6 of 8 complete.** Working today: the public website with its
+**Status: Phase 7 of 8 complete.** Working today: the public website with its
 instant-quote calculator, the lead pipeline, client records with referral
 tracking, the weekly drag-and-drop schedule with its recurring-booking engine
 and conflict detection, the cleaner's mobile view with GPS clock in/out,
@@ -35,7 +35,7 @@ npm run dev              # http://localhost:3000
 | 4 | Cleaner mobile view, checklists, photos | **Done** |
 | 5 | Invoicing, Stripe, dunning | **Done** |
 | 6 | Ratings, retention, referrals | **Done** |
-| 7 | Staff/HR and inventory | Not started |
+| 7 | Staff/HR and inventory | **Done** |
 | 8 | Reporting dashboard and polish | Not started |
 
 ## The stack
@@ -86,6 +86,10 @@ Money is stricter still: an operations manager can *read* invoices but cannot
 record a payment, issue a credit note or run billing — refused by the app and,
 independently, by the database.
 
+Salary is stricter than either: the four payroll columns are revoked from every
+signed-in database session outright, so nothing reached through a login can read
+what anyone earns, whatever the app asks for.
+
 All 57 tables live in a schema called `cleanos` rather than `public`, so Anqa
 RMS, the PMS and DINE OS can share one database and one login without colliding
 on the 25 table names they all want.
@@ -111,4 +115,5 @@ what this model does *not* yet cover.
 | `npm run test:e2e:field` | Drive the cleaner's mobile view at phone size |
 | `npm run test:e2e:invoices` | Drive invoicing, payments and credit notes in a browser |
 | `npm run test:e2e:retention` | Drive ratings, churn risk and campaigns in a browser |
+| `npm run test:e2e:hr` | Drive staff, compliance, timesheets and stock in a browser |
 | `npm run db:roles` | Create the security roles and the `cleanos` schema (safe to repeat) |

@@ -118,6 +118,17 @@ SELECT pg_temp.check_count('ops CAN read invoices',    'SELECT count(*) FROM inv
 SELECT pg_temp.check_count('ops CANNOT see ad spend',  'SELECT count(*) FROM marketing_spend', 0);
 SELECT pg_temp.check_count('ops CANNOT see audit log', 'SELECT count(*) FROM audit_logs', 0);
 SELECT pg_temp.check_denied('ops CANNOT edit an invoice', 'UPDATE invoices SET "totalFils" = 1');
+
+-- Salary is a COLUMN restriction, not a row one. An ops manager gets the staff
+-- list but must not be able to read what anybody earns, by any route.
+SELECT pg_temp.check_blocked('ops CANNOT read salaries',
+  'SELECT count("basicSalaryFils") FROM staff');
+SELECT pg_temp.check_blocked('ops CANNOT read bank IBANs',
+  'SELECT count(iban) FROM staff');
+SELECT pg_temp.check_denied('ops CANNOT change a salary',
+  'UPDATE staff SET "basicSalaryFils" = 1');
+SELECT pg_temp.check_count('ops CAN still read the staff list',
+  'SELECT count(*) FROM staff', (SELECT all_staff FROM truth));
 SELECT pg_temp.check_denied('ops CANNOT edit the rate card', 'UPDATE rate_card_items SET "basePriceFils" = 1');
 SELECT pg_temp.check_denied('ops CANNOT change VAT settings', 'UPDATE organizations SET "vatRateBps" = 0');
 SELECT pg_temp.check_denied('ops CANNOT record a payment',

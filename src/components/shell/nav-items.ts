@@ -51,8 +51,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: "manage",
     items: [
-      { href: "/staff", key: "staff", icon: IdCard, roles: OFFICE, phase: 7 },
-      { href: "/inventory", key: "inventory", icon: Package, roles: OFFICE, phase: 7 },
+      { href: "/staff", key: "staff", icon: IdCard, roles: OFFICE },
+      { href: "/inventory", key: "inventory", icon: Package, roles: OFFICE },
       { href: "/settings", key: "settings", icon: Settings, roles: OWNER_ONLY, phase: 8 },
     ],
   },

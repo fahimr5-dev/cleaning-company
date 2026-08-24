@@ -112,3 +112,15 @@ export async function requireRole(
 
 /** Owner-only areas: financial settings, rate card, marketing spend. */
 export const OFFICE_ROLES: AppRole[] = ["OWNER", "OPS_MANAGER"];
+
+/**
+ * May this person see what staff are paid?
+ *
+ * PLAIN ENGLISH: an operations manager runs the rota, so they need the staff
+ * list. They do not need anybody's salary or bank details, and this is the
+ * app's half of stopping them — the database refuses those four columns to
+ * every signed-in session independently. See docs/SECURITY.md.
+ */
+export function canSeeSalary(role: AppRole): boolean {
+  return role === "OWNER";
+}

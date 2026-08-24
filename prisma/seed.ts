@@ -395,8 +395,10 @@ async function main() {
     staff.push(row);
 
     // Visa / Emirates ID / medical fitness. A few are made to expire soon so the
-    // 60/30/7-day compliance alerts have something real to fire on.
-    const soon = i < 4 ? [55, 28, 6, 90][i] : int(120, 700);
+    // 60/30/7-day compliance alerts have something real to fire on — and ONE has
+    // already lapsed, so the "cannot legally be scheduled" state is visible
+    // rather than theoretical. In a real company of sixteen, that is normal.
+    const soon = i < 5 ? [-9, 55, 28, 6, 90][i] : int(120, 700);
     await prisma.staffDocument.createMany({
       data: [
         { staffId: row.id, type: "VISA", number: `784-${int(1980, 2004)}-${int(1000000, 9999999)}-${int(1, 9)}`, issuedAt: day(-700), expiresAt: day(soon) },
